@@ -171,7 +171,8 @@ button{-webkit-tap-highlight-color:transparent}
         <span id="monster-intent-name" class="text-amber-400 font-bold truncate">正在鎖定...</span>
       </div>
     </div>
-    <button onclick="toggleDrawer('log')" class="tap w-10 text-xl" aria-label="日誌">📜</button>
+    <button onclick="toggleDrawer('help')" class="tap w-9 text-lg" aria-label="說明">❓</button>
+    <button onclick="toggleDrawer('log')" class="tap w-9 text-lg" aria-label="日誌">📜</button>
   </header>
   <div id="monster-intent-desc" class="shrink-0 mx-2 mb-1 px-3 py-1 rounded-lg bg-red-950/50 border border-red-900/60 text-[11px] text-red-100 truncate"></div>
 
@@ -205,13 +206,47 @@ button{-webkit-tap-highlight-color:transparent}
     </div>
     <div class="flex items-center justify-between px-1">
       <span class="text-[10px] text-gray-500">手牌 <span id="hand-count">0</span>/3 ・ 牌庫 <span id="deck-count">0</span> ・ 棄牌 <span id="discard-count">0</span> ・ 消耗 <span id="removed-count">0</span></span>
-      <span class="text-[10px] text-gray-600">「衝刺」= 棄牌換 +1 步</span>
+      <button onclick="toggleDrawer('help')" class="text-[10px] text-amber-400 font-bold">❓ 怎麼玩</button>
     </div>
     <div id="hand-container" class="flex gap-2 overflow-x-auto pb-1" style="min-height:110px"></div>
   </footer>
 </div>
 
 <!-- drawer: log -->
+<!-- drawer: help -->
+<div id="backdrop-help" class="backdrop" onclick="toggleDrawer('help')"></div>
+<div id="drawer-help" class="drawer p-4 flex flex-col" style="max-height:80dvh">
+  <div class="flex justify-between items-center mb-2"><b class="text-sm">❓ 怎麼玩</b><button onclick="toggleDrawer('help')" class="tap px-3 text-gray-400">✕</button></div>
+  <div class="overflow-y-auto text-xs text-gray-200 space-y-3 leading-relaxed">
+    <div class="panel p-3">
+      <b class="text-amber-300">每回合流程</b>
+      <ol class="list-decimal pl-4 mt-1 space-y-1">
+        <li>點下方獵人卡切換操作對象（或直接點地圖上的獵人）。</li>
+        <li>點<span class="text-green-300">綠色格</span>移動，每格耗 1 步。</li>
+        <li>走到魔物<b>相鄰格</b>後打出攻擊牌。手牌打不出去時按鈕會直接寫原因（需相鄰／需 1 步）。</li>
+        <li>兩位獵人都動完，按紅色「結束回合」，魔物才會行動。</li>
+      </ol>
+    </div>
+    <div class="panel p-3">
+      <b class="text-amber-300">手牌上的兩顆按鈕</b>
+      <div class="mt-1"><b class="text-yellow-300">打出</b>：使用這張牌的效果。</div>
+      <div class="mt-1"><b class="text-gray-100">棄牌 +1步</b>：<u>不使用效果</u>，把牌丟進棄牌堆，換目前獵人 +1 步移動力。適合手上抽到暫時用不到的牌（例如離魔物太遠的攻擊牌）。棄掉的牌之後會洗回牌庫，不會消失。</div>
+      <div class="mt-1"><b class="text-blue-300">被動</b>：翻滾／舉盾不能主動打，只會在你要受傷時自動跳出視窗問你要不要用。</div>
+    </div>
+    <div class="panel p-3">
+      <b class="text-amber-300">看懂地圖</b>
+      <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#6b3a8a"></span> 半透明魔物 = 牠下回合會走到的位置。</div>
+      <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#7a1f24"></span> 紅色斜紋 = 牠這次攻擊會打到的格子，結束回合前站在裡面就會受傷。</div>
+      <div class="mt-1">魔物撞到站在牠前進路線上的獵人會把人推退 1 格，被推出地圖邊緣直接倒下。</div>
+    </div>
+    <div class="panel p-3">
+      <b class="text-amber-300">道具小抄</b>
+      <div class="mt-1">🕳️ 陷阱 / 💣 爆彈桶：打出後點<b>相鄰空格</b>放置。爆彈桶可再花 1 步點它遠程引爆，或等魔物攻擊掃到它。</div>
+      <div class="mt-1">⚡ 閃光彈：取消魔物這回合的攻擊，但牠仍會移動。</div>
+      <div class="mt-1">🔥 魔物血量低於 40% 會狂暴，傷害 +1。</div>
+    </div>
+  </div>
+</div>
 <div id="backdrop-log" class="backdrop" onclick="toggleDrawer('log')"></div>
 <div id="drawer-log" class="drawer p-3 flex flex-col" style="height:55dvh">
   <div class="flex justify-between items-center mb-2"><b class="text-sm">📜 戰鬥日誌</b><button onclick="toggleDrawer('log')" class="tap px-3 text-gray-400">✕</button></div>
@@ -391,13 +426,13 @@ function renderHand(){
       <div class="text-[9px] text-gray-300 leading-tight flex-1">${card.desc}</div>
       <div class="flex gap-1 mt-1">
         <button class="cbtn play" ${playable?`onclick="playCard(${i})"`:'disabled'}>${playable?'打出':hint}</button>
-        <button class="cbtn dash" onclick="discardForMove(${i})">衝刺</button></div>`;
+        <button class="cbtn dash" onclick="discardForMove(${i})">棄牌 +1步</button></div>`;
     c.appendChild(el);
   });
   document.getElementById('hand-count').innerText=hand.length;
 }
 function removeFromHand(i,toRemoved=false){const card=hand[i];(toRemoved?removedCards:discardPile).push(card);hand.splice(i,1);}
-function discardForMove(i){if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];const card=hand[i];p.move+=1;logMsg(`💨 ${pName(p)} 捨棄 [${card.name}] 衝刺，+1 步`);removeFromHand(i);cancelPlacement();updateUI();}
+function discardForMove(i){if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];const card=hand[i];p.move+=1;logMsg(`💨 ${pName(p)} 棄掉 [${card.name}] 換得 +1 步`);toast('棄牌換步：+1 步移動力');removeFromHand(i);cancelPlacement();updateUI();}
 function cancelPlacement(){placementMode=null;document.getElementById('placement-hint').classList.add('hidden');}
 function hitMonster(dmg,x,y){monster.hp-=dmg;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
 function playCard(i){
@@ -443,7 +478,7 @@ async function handleGridClick(x,y){
   }
   if(isOccupied(x,y))return;
   if(getDistance(p.x,p.y,x,y)===1&&p.move>0){p.x=x;p.y=y;p.move--;updateUI();}
-  else if(p.move<=0)toast('步數用完了，可用「衝刺」棄牌換步');
+  else if(p.move<=0)toast('步數用完了，可按手牌的「棄牌 +1步」換移動力');
 }
 async function triggerBombExplosion(cx,cy){
   isProcessing=true;const idx=bombPos.findIndex(b=>b.x===cx&&b.y===cy);if(idx!==-1)bombPos.splice(idx,1);
@@ -555,6 +590,7 @@ function updateUI(){
 }
 renderMonsterGrid();
 if(location.hash==='#quick')startGame();
+else if(location.hash==='#help'){startGame();toggleDrawer('help');}
 else if(location.hash==='#pick')setupStep(1);
 </script>
 </body>
