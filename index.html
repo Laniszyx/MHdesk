@@ -96,8 +96,11 @@ button{-webkit-tap-highlight-color:transparent}
       <div class="text-[10px] tracking-[.3em] text-amber-400 font-bold">HUNTING BOARD</div>
       <h1 class="text-xl font-black">狩獵戰棋 <span class="text-gray-500 text-sm font-bold">六角格版</span></h1>
     </div>
-    <div class="flex gap-1.5 items-center" id="step-dots">
-      <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+    <div class="flex gap-3 items-center">
+      <button onclick="openRecords()" class="tap px-2 text-xl" aria-label="紀錄">🏆</button>
+      <div class="flex gap-1.5 items-center" id="step-dots">
+        <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
+      </div>
     </div>
   </header>
 
@@ -216,6 +219,12 @@ button{-webkit-tap-highlight-color:transparent}
 </div>
 
 <!-- drawer: log -->
+<!-- drawer: records -->
+<div id="backdrop-records" class="backdrop" style="z-index:95" onclick="toggleDrawer('records')"></div>
+<div id="drawer-records" class="drawer p-4 flex flex-col" style="max-height:85dvh;z-index:96">
+  <div class="flex justify-between items-center mb-2"><b class="text-sm">🏆 狩獵紀錄</b><button onclick="toggleDrawer('records')" class="tap px-3 text-gray-400">✕</button></div>
+  <div id="records-body" class="overflow-y-auto text-xs"></div>
+</div>
 <!-- drawer: help -->
 <div id="backdrop-help" class="backdrop" onclick="toggleDrawer('help')"></div>
 <div id="drawer-help" class="drawer p-4 flex flex-col" style="max-height:80dvh">
@@ -275,8 +284,12 @@ button{-webkit-tap-highlight-color:transparent}
   <div class="text-center">
     <div class="w-32 h-32 mx-auto rounded-2xl bg-white p-2 mb-4 shadow-2xl"><img id="go-img" class="w-full h-full object-contain"></div>
     <h2 id="game-over-title" class="text-4xl font-black mb-2"></h2>
-    <p id="game-over-sub" class="text-gray-400 text-sm mb-6"></p>
-    <button onclick="location.reload()" class="tap btn-primary px-10 py-4 text-lg">再狩獵一次</button>
+    <p id="game-over-sub" class="text-gray-400 text-sm mb-3"></p>
+    <div id="go-ach" class="space-y-1.5 mb-4 max-w-xs mx-auto"></div>
+    <div class="flex gap-2 justify-center">
+      <button onclick="openRecords()" class="tap btn-ghost px-5 py-4 text-base">🏆 紀錄</button>
+      <button onclick="location.reload()" class="tap btn-primary px-8 py-4 text-lg">再狩獵一次</button>
+    </div>
   </div>
 </div>
 
@@ -343,12 +356,65 @@ function shakeScreen(){const g=document.getElementById('grid-wrap');g.classList.
 function spawnFx(x,y,html,extraCls=''){const cell=document.getElementById(`cell-${x}-${y}`);if(!cell)return;const fx=document.createElement('div');fx.className='fx '+extraCls;fx.style.left=cell.style.left;fx.style.top=cell.style.top;fx.style.width=cell.style.width;fx.style.height=cell.style.height;fx.innerHTML=html;document.getElementById('grid-container').appendChild(fx);setTimeout(()=>fx.remove(),750);}
 const pName=p=>`<b class="${p.color==='red'?'text-red-300':'text-blue-300'}">${p.name}</b>`;
 
+/* ===================== SAVE / RECORDS (localStorage) ===================== */
+const SAVE_KEY='mhdesk_save_v1';
+const speciesWon=s=>Object.values(s.hunts).filter(h=>h.wins>0).length;
+const ACH=[
+  {id:'first_win',icon:'🎯',name:'初次狩獵',desc:'首次討伐成功',test:s=>s.totals.wins>=1},
+  {id:'win5',icon:'🗡️',name:'老練獵人',desc:'累計討伐 5 次',test:s=>s.totals.wins>=5},
+  {id:'win20',icon:'⚔️',name:'狩獵狂',desc:'累計討伐 20 次',test:s=>s.totals.wins>=20},
+  {id:'species10',icon:'📖',name:'圖鑑收集家',desc:'討伐 10 種不同魔物',test:s=>speciesWon(s)>=10},
+  {id:'species_all',icon:'👑',name:'傳說獵人',desc:'34 種魔物全部討伐',test:s=>speciesWon(s)>=MONSTERS.length},
+  {id:'elder',icon:'🐉',name:'古龍討伐者',desc:'討伐任一 ★★★ 古龍',test:s=>MONSTERS.some(m=>m.t===3&&(s.hunts[m.f]||{}).wins>0)},
+  {id:'elder_all',icon:'🌌',name:'古龍終結者',desc:'所有 ★★★ 古龍皆討伐',test:s=>MONSTERS.filter(m=>m.t===3).every(m=>(s.hunts[m.f]||{}).wins>0)},
+  {id:'no_damage',icon:'✨',name:'完美狩獵',desc:'一場零受傷討伐',test:(s,g)=>g&&g.win&&g.damageTaken===0},
+  {id:'fast',icon:'⚡',name:'速攻',desc:'5 回合內討伐',test:(s,g)=>g&&g.win&&g.turns<=5},
+  {id:'bomb_kill',icon:'💣',name:'爆破專家',desc:'用爆彈桶完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='bomb'},
+  {id:'trap_kill',icon:'🕳️',name:'陷阱大師',desc:'用落穴陷阱完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='trap'},
+  {id:'comeback',icon:'🔥',name:'絕地反攻',desc:'一名獵人倒下後仍討伐成功',test:(s,g)=>g&&g.win&&g.downed},
+];
+function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.hunts&&s.totals)return s;}catch(e){}return {hunts:{},ach:{},totals:{wins:0,losses:0}};}
+function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
+let save=loadSave();
+const stats={damageTaken:0,defendUsed:0,lastHit:''};
+function recordResult(win){
+  const h=save.hunts[monster.img]||(save.hunts[monster.img]={tries:0,wins:0,bestTurn:null});
+  h.tries++;if(win){h.wins++;if(h.bestTurn===null||currentTurn<h.bestTurn)h.bestTurn=currentTurn;save.totals.wins++;}else save.totals.losses++;
+  const g={win,turns:currentTurn,damageTaken:stats.damageTaken,lastHit:stats.lastHit,downed:players.some(p=>p.hp<=0)};
+  const fresh=[];ACH.forEach(a=>{if(!save.ach[a.id]&&a.test(save,g)){save.ach[a.id]=Date.now();fresh.push(a);}});
+  persist();return fresh;
+}
+function renderRecords(){
+  const s=save,won=speciesWon(s),unlocked=Object.keys(s.ach).length;
+  let html=`<div class="grid grid-cols-3 gap-2 text-center mb-3">
+    <div class="panel p-2"><div class="text-[10px] text-gray-400">討伐成功</div><div class="font-black text-lg text-green-300">${s.totals.wins}<span class="text-[10px] text-gray-500 font-normal"> / 失敗 ${s.totals.losses}</span></div></div>
+    <div class="panel p-2"><div class="text-[10px] text-gray-400">圖鑑</div><div class="font-black text-lg text-amber-300">${won}<span class="text-xs text-gray-500">/${MONSTERS.length}</span></div></div>
+    <div class="panel p-2"><div class="text-[10px] text-gray-400">成就</div><div class="font-black text-lg text-purple-300">${unlocked}<span class="text-xs text-gray-500">/${ACH.length}</span></div></div></div>`;
+  html+=`<b class="text-xs text-amber-300">🏅 成就</b><div class="grid grid-cols-2 gap-1.5 mt-1 mb-3">`+ACH.map(a=>{const on=!!s.ach[a.id];
+    return `<div class="panel p-2 flex gap-2 items-center ${on?'':'opacity-40'}"><span class="text-xl">${on?a.icon:'🔒'}</span><div class="min-w-0"><div class="text-[11px] font-bold truncate">${a.name}</div><div class="text-[9px] text-gray-400 leading-tight">${a.desc}</div></div></div>`;}).join('')+`</div>`;
+  html+=`<b class="text-xs text-amber-300">📖 狩獵圖鑑</b><div class="grid grid-cols-4 gap-1.5 mt-1 mb-3">`+MONSTERS.map(m=>{const h=s.hunts[m.f],w=h?h.wins:0;
+    return `<div class="text-center"><div class="mon-pick ${w?'':'opacity-40 grayscale'}" style="padding:3px"><img src="${m.f}">${w?`<span class="tier bg-green-600 text-white">✓${w}</span>`:''}</div>
+      <div class="text-[9px] mt-0.5 truncate">${m.n}</div><div class="text-[8px] text-gray-500 leading-tight">${h?`${h.wins}勝${h.tries-h.wins}敗${h.bestTurn?'<br>最快 '+h.bestTurn+' 回':''}`:'未遭遇'}</div></div>`;}).join('')+`</div>`;
+  html+=`<div class="panel p-3 space-y-2"><b class="text-xs text-amber-300">💾 備份 / 還原</b>
+    <p class="text-[10px] text-gray-400 leading-snug">紀錄存在這台裝置的瀏覽器裡（清除瀏覽資料會一起清掉）。要搬到別台裝置：按「複製備份碼」，到另一台貼進欄位按「還原」。</p>
+    <div class="flex gap-2"><button onclick="exportSave()" class="tap btn-ghost flex-1 text-xs">複製備份碼</button><button onclick="resetSave()" class="tap btn-ghost flex-1 text-xs text-red-300">清除紀錄</button></div>
+    <div class="flex gap-2"><input id="import-box" placeholder="貼上備份碼" class="flex-1 min-w-0 bg-black/40 border border-gray-700 rounded-lg px-2 py-2 text-xs outline-none"><button onclick="importSave()" class="tap btn-primary px-4 text-xs">還原</button></div></div>`;
+  document.getElementById('records-body').innerHTML=html;
+}
+function openRecords(){renderRecords();toggleDrawer('records');}
+function exportSave(){const code=btoa(unescape(encodeURIComponent(JSON.stringify(save))));const fallback=()=>prompt('請手動全選複製備份碼：',code);
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(()=>toast('備份碼已複製到剪貼簿'),fallback);else fallback();}
+function importSave(){const v=(document.getElementById('import-box').value||'').trim();
+  try{const s=JSON.parse(decodeURIComponent(escape(atob(v))));if(!s.hunts||!s.totals)throw 0;save=s;persist();renderRecords();if(document.getElementById('mon-grid').children.length)renderMonsterGrid();toast('紀錄已還原');}catch(e){toast('備份碼格式不正確');}}
+function resetSave(){if(!confirm('確定要清除所有狩獵紀錄與成就？'))return;save={hunts:{},ach:{},totals:{wins:0,losses:0}};persist();renderRecords();if(document.getElementById('mon-grid').children.length)renderMonsterGrid();toast('已清除');}
+
 /* ===================== SETUP WIZARD ===================== */
 function renderMonsterGrid(){
   const g=document.getElementById('mon-grid');g.innerHTML='';
   MONSTERS.forEach((m,i)=>{
     const d=document.createElement('button');d.className='mon-pick'+(i===selectedMonster?' sel':'');
-    d.innerHTML=`<img src="${m.f}" alt="${m.n}"><span class="tier ${TIER[m.t].cls}">${TIER[m.t].label}</span>`;
+    const wins=(save.hunts[m.f]||{}).wins||0;
+    d.innerHTML=`<img src="${m.f}" alt="${m.n}"><span class="tier ${TIER[m.t].cls}">${TIER[m.t].label}</span>${wins?`<span class="tier bg-green-600 text-white" style="right:auto;left:4px;top:auto;bottom:4px">✓${wins}</span>`:''}`;
     d.onclick=()=>{selectedMonster=i;renderMonsterGrid();};
     g.appendChild(d);
   });
@@ -389,6 +455,7 @@ function setupStep(dir){
 
 /* ===================== GAME START ===================== */
 function startGame(){
+  stats.damageTaken=0;stats.defendUsed=0;stats.lastHit='';
   players[0].name=document.getElementById('setup-p0-name').value||'大劍';
   players[0].icon=document.getElementById('setup-p0-icon').value||'🗡️';
   players[1].name=document.getElementById('setup-p1-name').value||'片手劍';
@@ -438,7 +505,7 @@ function renderHand(){
 function removeFromHand(i,toRemoved=false){const card=hand[i];(toRemoved?removedCards:discardPile).push(card);hand.splice(i,1);}
 function discardForMove(i){if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];const card=hand[i];p.move+=1;logMsg(`💨 ${pName(p)} 棄掉 [${card.name}] 換得 +1 步`);toast('棄牌換步：+1 步移動力');removeFromHand(i);cancelPlacement();updateUI();}
 function cancelPlacement(){placementMode=null;document.getElementById('placement-hint').classList.add('hidden');}
-function hitMonster(dmg,x,y){monster.hp-=dmg;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
+function hitMonster(dmg,src='weapon',x,y){monster.hp-=dmg;stats.lastHit=src;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
 function playCard(i){
   if(!gameActive||isProcessing)return;const card=hand[i],p=players[activePlayerIndex];const dist=getDistance(p.x,p.y,monster.x,monster.y);
   if(card.isItem){
@@ -488,7 +555,7 @@ async function triggerBombExplosion(cx,cy){
   isProcessing=true;const idx=bombPos.findIndex(b=>b.x===cx&&b.y===cy);if(idx!==-1)bombPos.splice(idx,1);
   updateUI();spawnFx(cx,cy,'<span class="text-4xl">💥</span>');getNeighbors(cx,cy).forEach(n=>spawnFx(n.x,n.y,'<span class="text-2xl opacity-80">🔥</span>'));shakeScreen();
   await new Promise(r=>setTimeout(r,350));
-  if(monster.hp>0&&getDistance(monster.x,monster.y,cx,cy)<=1){hitMonster(4);logMsg(`💥 ${monster.name} 被炸彈波及 4 傷！`);}
+  if(monster.hp>0&&getDistance(monster.x,monster.y,cx,cy)<=1){hitMonster(4,'bomb');logMsg(`💥 ${monster.name} 被炸彈波及 4 傷！`);}
   for(const p of players)if(p.hp>0&&getDistance(p.x,p.y,cx,cy)<=1){logMsg(`⚠️ ${pName(p)} 在爆炸範圍內！`);await applyDamageToPlayer(p,4,'大爆彈桶爆炸');}
   for(const cb of bombPos.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){logMsg('⛓️ 連環爆炸！');await triggerBombExplosion(cb.x,cb.y);}
   updateUI();checkWinLose();isProcessing=false;
@@ -507,10 +574,10 @@ async function applyDamageToPlayer(p,dmg,src){
   let taken=dmg;
   if(dI===-1&&sI===-1){logMsg(`🩸 ${pName(p)} 無防禦手段，受到 ${dmg} 傷`);}
   else{const ch=await showDefenseModal(p,dmg,src,dI!==-1,sI!==-1);
-    if(ch==='dodge'){taken=0;removeFromHand(hand.findIndex(c=>c.id==='dodge'));logMsg(`💨 ${pName(p)} 翻滾迴避，完美閃躲！`);}
-    else if(ch==='shield'){taken=Math.max(0,dmg-2);removeFromHand(hand.findIndex(c=>c.id==='shield'));logMsg(`🛡️ ${pName(p)} 舉盾，受到 ${taken} 傷`);}
+    if(ch==='dodge'){taken=0;stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='dodge'));logMsg(`💨 ${pName(p)} 翻滾迴避，完美閃躲！`);}
+    else if(ch==='shield'){taken=Math.max(0,dmg-2);stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='shield'));logMsg(`🛡️ ${pName(p)} 舉盾，受到 ${taken} 傷`);}
     else logMsg(`🩸 ${pName(p)} 硬扛 ${dmg} 傷`);}
-  p.hp-=taken;if(taken>0)spawnFx(p.x,p.y,`<span class="text-xl text-red-400">-${taken}</span>`);else spawnFx(p.x,p.y,'<span class="text-base text-blue-200">MISS</span>');
+  p.hp-=taken;stats.damageTaken+=taken;if(taken>0)spawnFx(p.x,p.y,`<span class="text-xl text-red-400">-${taken}</span>`);else spawnFx(p.x,p.y,'<span class="text-base text-blue-200">MISS</span>');
   updateUI();
 }
 
@@ -541,7 +608,7 @@ async function endTurn(){
   }
   monster.x=monster.phantomX;monster.y=monster.phantomY;updateUI();await new Promise(r=>setTimeout(r,250));
   const tI=trapPos.findIndex(t=>t.x===monster.x&&t.y===monster.y);
-  if(tI!==-1){trapPos.splice(tI,1);hitMonster(2);logMsg(`🕳️ ${monster.name} 踏入落穴陷阱！中斷攻擊並受 2 傷`,true);}
+  if(tI!==-1){trapPos.splice(tI,1);hitMonster(2,'trap');logMsg(`🕳️ ${monster.name} 踏入落穴陷阱！中斷攻擊並受 2 傷`,true);}
   else{
     if(bombPos.some(b=>b.x===monster.x&&b.y===monster.y)){logMsg(`💥 ${monster.name} 踩到爆彈桶！`,true);await triggerBombExplosion(monster.x,monster.y);}
     if(monster.hp>0&&monster.blinded){logMsg(`😵 ${monster.name} 被閃光致盲，攻擊落空`);}
@@ -557,10 +624,15 @@ async function endTurn(){
   drawCards(MAX_HAND-hand.length);planMonsterIntent();updateUI();isProcessing=false;
 }
 function checkWinLose(){
-  if(monster.hp<=0){gameActive=false;showGameOver('🎉 狩獵成功！','text-green-400',`第 ${currentTurn} 回合討伐 ${monster.name}`);updateUI();}
-  else if(players.every(p=>p.hp<=0)){gameActive=false;showGameOver('💀 任務失敗','text-red-500',`${monster.name} 仍剩 ${monster.hp} HP`);updateUI();}
+  if(!gameActive)return;
+  if(monster.hp<=0){gameActive=false;const fresh=recordResult(true);const h=save.hunts[monster.img];
+    showGameOver('🎉 狩獵成功！','text-green-400',`第 ${currentTurn} 回合討伐 ${monster.name}（此魔物 ${h.wins} 勝・最快 ${h.bestTurn} 回）`,fresh);updateUI();}
+  else if(players.every(p=>p.hp<=0)){gameActive=false;const fresh=recordResult(false);
+    showGameOver('💀 任務失敗','text-red-500',`${monster.name} 仍剩 ${monster.hp} HP`,fresh);updateUI();}
 }
-function showGameOver(t,cls,sub){const o=document.getElementById('game-over');const h=document.getElementById('game-over-title');h.className='text-4xl font-black mb-2 '+cls;h.innerText=t;document.getElementById('game-over-sub').innerText=sub;setTimeout(()=>o.classList.remove('hidden'),500);}
+function showGameOver(t,cls,sub,fresh=[]){const o=document.getElementById('game-over');const h=document.getElementById('game-over-title');h.className='text-4xl font-black mb-2 '+cls;h.innerText=t;document.getElementById('game-over-sub').innerText=sub;
+  document.getElementById('go-ach').innerHTML=fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-2 border-amber-500/60 text-left"><span class="text-2xl">${a.icon}</span><div><div class="text-[10px] text-amber-400 font-bold">🏅 新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join('');
+  setTimeout(()=>o.classList.remove('hidden'),500);}
 
 /* ===================== RENDER ===================== */
 function updateUI(){
@@ -597,6 +669,7 @@ if(location.hash==='#quick')startGame();
 else if(location.hash==='#help'){startGame();toggleDrawer('help');}
 else if(location.hash==='#pick')setupStep(1);
 else if(location.hash==='#deck'){setupStep(1);setupStep(1);}
+else if(location.hash==='#records')openRecords();
 </script>
 </body>
 </html>
