@@ -252,6 +252,13 @@ button{-webkit-tap-highlight-color:transparent}
       <div class="mt-1">魔物撞到站在牠前進路線上的獵人會把人推退 1 格，被推出地圖邊緣直接倒下。</div>
     </div>
     <div class="panel p-3">
+      <b class="text-amber-300">魔物招式與狀態</b>
+      <div class="mt-1">每隻魔物都有 2–3 招獨家招式（選龍時會列出），加上共通的咬擊／踐踏／尾掃／咆哮。上方預警條會寫出招式名稱、傷害與附加效果。</div>
+      <div class="mt-1">🐌 減速：下回合 -1 步　⚡ 麻痺：下回合不能移動　☠️🔥🩸 中毒／灼燒／流血：接下來 2 回合各 -1 HP（無法防禦）　💨 擊退：被推離 1 格</div>
+      <div class="mt-1">🕊️ 飛行：魔物下回合近戰打不到，等牠降落　🛡️ 硬化：下回合對牠的傷害 -2　🔥 狂暴：傷害 +1（血量低於 40% 也會狂暴）</div>
+      <div class="mt-1">「鎖定型」招式（俯衝、潛地突刺等）攻擊的是預警時獵人站的格子——走開就能躲。翻滾迴避成功時附加效果也一併躲掉。</div>
+    </div>
+    <div class="panel p-3">
       <b class="text-amber-300">道具小抄</b>
       <div class="mt-1">🕳️ 陷阱 / 💣 爆彈桶：打出後點<b>相鄰空格</b>放置。爆彈桶可再花 1 步點它遠程引爆，或等魔物攻擊掃到它。</div>
       <div class="mt-1">⚡ 閃光彈：取消魔物這回合的攻擊，但牠仍會移動。</div>
@@ -309,11 +316,116 @@ const MONSTERS = [
   {f:'image033_S.jpg',n:'蠻顎龍',t:2},{f:'image034_S.jpg',n:'絢輝龍',t:3},
 ];
 const TIER = {1:{hp:30,dmg:-1,label:'★',cls:'bg-green-600 text-white'},2:{hp:40,dmg:0,label:'★★',cls:'bg-amber-500 text-black'},3:{hp:55,dmg:1,label:'★★★',cls:'bg-purple-600 text-white'}};
-const BASE_ACTIONS = [
-  {name:'突進咬噬',rangeType:'line',length:1,dmg:3,desc:'逼近 1 格後，攻擊正前方 1 格'},
-  {name:'蠻力踐踏',rangeType:'radius',length:1,dmg:3,desc:'逼近 1 格後，攻擊周圍一圈 6 格'},
-  {name:'烈焰吐息',rangeType:'line',length:3,dmg:4,desc:'逼近 1 格後，直線噴射 3 格'},
-];
+/* 招式格式：range = line(直線len格) / radius(周圍len圈) / ring(距離2一圈) / arc(正前方3格) / target(鎖定獵人所在格+周圍len圈)
+   / random(附近隨機n格) / all(全圖) / none。move = 逼近格數(預設1，0原地，2衝刺)。self = 自身效果，hit = 命中效果 */
+const COMMON = {
+  bite:{name:'咬擊',range:'line',len:1,dmg:3,desc:'逼近後咬向正前方 1 格'},
+  stomp:{name:'踐踏',range:'radius',len:1,dmg:3,desc:'逼近後踩踏周圍一圈'},
+  tail:{name:'尾掃',range:'arc',dmg:3,desc:'逼近後橫掃正前方 3 格'},
+  roar:{name:'咆哮',range:'radius',len:2,dmg:0,hit:['slow'],desc:'震懾周圍 2 圈，命中者下回合 -1 步'},
+};
+const MOVESETS = {
+  image001:{s:[{name:'毒爪俯衝',range:'target',len:0,dmg:4,move:2,hit:['poison'],desc:'從空中俯衝鎖定獵人所在格，爪擊帶毒'},
+    {name:'火球',range:'line',len:3,dmg:4,hit:['burn'],desc:'直線噴出火球 3 格，命中者灼燒'},
+    {name:'翱翔',range:'none',move:0,self:['fly'],desc:'飛上天空，下回合近戰無法命中'}],c:['bite','tail']},
+  image002:{s:[{name:'急速俯衝',range:'target',len:0,dmg:5,move:2,hit:['push'],desc:'高速俯衝鎖定格，命中者被撞退 1 格'},
+    {name:'連續火球',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'空中連射火球，隨機落在附近 3 格'},
+    {name:'滯空飛翔',range:'none',move:0,self:['fly'],desc:'飛上天空，下回合近戰無法命中'}],c:['bite','tail']},
+  image003:{s:[{name:'毒尾空翻',range:'radius',len:1,dmg:3,hit:['poison'],desc:'後空翻毒尾掃過周圍一圈，命中者中毒'},
+    {name:'火焰吐息',range:'line',len:2,dmg:3,hit:['burn'],desc:'向前噴火 2 格'}],c:['bite','stomp']},
+  image004:{s:[{name:'連續毒尾空翻',range:'radius',len:1,dmg:4,hit:['poison'],desc:'連續兩次空翻，周圍一圈重擊帶毒'},
+    {name:'烈焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'向前噴火 3 格'}],c:['bite','tail']},
+  image005:{s:[{name:'潛地突刺',range:'target',len:1,dmg:5,desc:'潛入地底從鎖定獵人腳下鑽出，波及周圍一圈'},
+    {name:'雙角衝撞',range:'line',len:3,dmg:4,move:2,hit:['push'],desc:'衝刺 2 格後雙角直衝 3 格，命中者被撞退'},
+    {name:'尾錘',range:'arc',dmg:3,hit:['stun'],desc:'尾錘重擊前方 3 格，命中者暈眩'}],c:['bite','roar']},
+  image006:{s:[{name:'狂怒衝撞',range:'line',len:3,dmg:5,move:2,hit:['push'],desc:'衝刺 2 格後全力衝撞 3 格'},
+    {name:'潛地追蹤',range:'target',len:1,dmg:5,hit:['stun'],desc:'從鎖定獵人腳下鑽出，波及周圍一圈並暈眩'}],c:['bite','roar']},
+  image007:{s:[{name:'膨脹壓擊',range:'radius',len:1,dmg:3,hit:['stun'],desc:'膨脹頸囊後從空中壓下，周圍一圈暈眩'},
+    {name:'滑翔翼擊',range:'line',len:2,dmg:3,hit:['push'],desc:'低空滑翔用翅膀撞飛前方 2 格'},
+    {name:'膨脹飛行',range:'none',move:0,self:['fly'],desc:'鼓起頸囊浮空，下回合近戰無法命中'}],c:['bite','tail']},
+  image008:{s:[{name:'冰結風壓',range:'target',len:1,dmg:3,hit:['slow'],desc:'向鎖定獵人放出冰風，周圍一圈冰凍減速'},
+    {name:'滑空爪擊',range:'line',len:3,dmg:4,move:2,desc:'高速滑翔爪擊前方 3 格'},
+    {name:'凍氣吐息',range:'arc',dmg:3,hit:['slow'],desc:'噴出凍氣覆蓋前方 3 格'}],c:['bite','tail']},
+  image009:{s:[{name:'俯衝突刺',range:'target',len:1,dmg:6,move:2,hit:['push'],desc:'全身棘刺俯衝鎖定格，周圍一圈重創並撞退'},
+    {name:'棘刺硬化',range:'radius',len:1,dmg:2,move:0,self:['armor'],desc:'原地硬化棘刺，周圍一圈受傷，自身下回合受傷 -2'},
+    {name:'棘刺投射',range:'ring',dmg:3,desc:'甩出棘刺，打擊距離 2 的整圈'}],c:['bite','stomp']},
+  image010:{s:[{name:'投石',range:'line',len:3,dmg:3,desc:'抱起石頭砸向前方 3 格'},
+    {name:'巨石壓擊',range:'radius',len:1,dmg:4,hit:['stun'],desc:'高舉巨石砸下，周圍一圈暈眩'}],c:['bite','tail']},
+  image011:{s:[{name:'泥漿甩尾',range:'radius',len:1,dmg:2,hit:['slow'],desc:'甩落泥漿，周圍一圈黏住減速'},
+    {name:'頭錘衝撞',range:'line',len:2,dmg:4,move:2,hit:['push'],desc:'低頭衝刺 2 格，頭冠撞飛前方 2 格'},
+    {name:'泥漿投擲',range:'target',len:1,dmg:2,hit:['slow'],desc:'向鎖定獵人甩出泥團，周圍一圈減速'}],c:['bite','stomp']},
+  image012:{s:[{name:'滾動輾壓',range:'line',len:4,dmg:4,move:2,hit:['push'],desc:'蜷成骨球高速滾動輾過前方 4 格'},
+    {name:'骨棘四散',range:'ring',dmg:2,desc:'甩落骨頭碎片，打擊距離 2 的整圈'},
+    {name:'睡眠瓦斯',range:'radius',len:1,dmg:0,hit:['stun'],desc:'噴出催眠瓦斯，周圍一圈昏睡（下回合無法移動）'}],c:['bite','stomp']},
+  image013:{s:[{name:'滾動輾壓',range:'line',len:4,dmg:4,move:2,hit:['push'],desc:'蜷成岩球高速滾動輾過前方 4 格'},
+    {name:'下顎重擊',range:'arc',dmg:5,hit:['stun'],desc:'巨大下顎砸向前方 3 格，命中者暈眩'},
+    {name:'爆炸岩散布',range:'none',move:0,self:['bombs:2'],desc:'從背甲抖落 2 顆爆炸岩（等同爆彈桶）在附近'}],c:['bite','stomp']},
+  image014:{s:[{name:'龍屬性吐息',range:'line',len:3,dmg:5,desc:'噴出黑色龍能量，直線 3 格'},
+    {name:'叼起投擲',range:'arc',dmg:5,hit:['push'],desc:'叼住獵人猛甩，前方 3 格重創並撞退'},
+    {name:'狂暴化',range:'radius',len:1,dmg:2,move:0,self:['enrage'],desc:'肌肉暴脹進入永久狂暴，周圍一圈受傷'}],c:['bite','stomp']},
+  image015:{s:[{name:'吞食膨脹',range:'none',move:0,self:['heal:4'],desc:'吞下獵物回復 4 HP，身體膨脹'},
+    {name:'膨脹壓擊',range:'radius',len:1,dmg:3,desc:'膨脹的身體撲倒，壓扁周圍一圈'}],c:['bite','tail']},
+  image016:{s:[{name:'帶電飛撲',range:'line',len:2,dmg:4,hit:['stun'],desc:'全身帶電撲向前方 2 格，命中者麻痺'},
+    {name:'電氣尾擊',range:'arc',dmg:3,hit:['stun'],desc:'帶電尾巴掃過前方 3 格，命中者麻痺'},
+    {name:'樹上滑翔',range:'target',len:0,dmg:3,move:2,desc:'爬上高處滑翔撲向鎖定獵人所在格'}],c:['bite','tail']},
+  image017:{s:[{name:'岩漿吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'吐出熔岩流覆蓋前方 3 格'},
+    {name:'爆炸岩噴出',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'咀嚼岩石後噴出，隨機炸裂附近 3 格'}],c:['bite','stomp']},
+  image018:{s:[{name:'雪中突襲',range:'target',len:1,dmg:4,hit:['slow'],desc:'潛入雪中從鎖定獵人腳下衝出，周圍一圈冰凍'},
+    {name:'冰雪噴射',range:'line',len:3,dmg:3,hit:['slow'],desc:'噴出雪塊直線 3 格'}],c:['bite','tail']},
+  image019:{s:[{name:'連續飛撲爪擊',range:'line',len:2,dmg:4,move:2,hit:['bleed'],desc:'疾走後連續撲擊前方 2 格，命中者裂傷流血'},
+    {name:'撕咬甩動',range:'target',len:0,dmg:5,hit:['bleed'],desc:'鎖定獵人所在格猛咬撕扯，造成流血'}],c:['bite','tail']},
+  image020:{s:[{name:'泥水噴射',range:'line',len:3,dmg:3,hit:['slow'],desc:'噴出泥水直線 3 格，命中者減速'},
+    {name:'潛泥突襲',range:'target',len:1,dmg:4,desc:'潛入泥沼從鎖定獵人腳下竄出，波及周圍一圈'}],c:['bite','tail']},
+  image021:{s:[{name:'熔岩火球',range:'line',len:3,dmg:4,hit:['burn'],desc:'吐出熔岩火球直線 3 格'},
+    {name:'潛岩衝撞',range:'target',len:1,dmg:4,hit:['burn'],desc:'潛入岩漿從鎖定獵人腳下衝出，周圍一圈灼燒'}],c:['bite','tail']},
+  image022:{s:[{name:'毒液噴射',range:'line',len:3,dmg:2,hit:['poison'],desc:'噴出毒液直線 3 格，命中者中毒'},
+    {name:'毒霧擴散',range:'radius',len:2,dmg:1,hit:['poison'],desc:'放出毒霧籠罩周圍 2 圈'},
+    {name:'毒液尾擊',range:'arc',dmg:2,hit:['poison'],desc:'尾巴甩出毒囊掃過前方 3 格'}],c:['bite','stomp']},
+  image023:{s:[{name:'閃光眩暈',range:'radius',len:2,dmg:0,move:0,hit:['stun'],desc:'展開頭部發出強光，周圍 2 圈全部暈眩'},
+    {name:'跳躍撲擊',range:'line',len:2,dmg:3,move:2,desc:'跳躍撲向前方 2 格'}],c:['bite','tail']},
+  image024:{s:[{name:'麻痺牙',range:'line',len:1,dmg:3,hit:['stun'],desc:'帶麻痺毒的獠牙咬向前方，命中者麻痺'},
+    {name:'群狼包抄',range:'random',len:3,n:3,dmg:2,desc:'呼喚兇豺龍群，隨機襲擊附近 3 格'}],c:['bite','tail']},
+  image025:{s:[{name:'爆鱗散布',range:'none',move:0,self:['bombs:3'],desc:'飛過時抖落 3 片爆鱗（等同爆彈桶）在附近'},
+    {name:'爆炸俯衝',range:'target',len:1,dmg:5,move:2,hit:['burn'],desc:'俯衝鎖定格引爆全身爆鱗，周圍一圈灼燒'},
+    {name:'爆鱗引爆',range:'none',move:0,self:['detonate'],desc:'引爆地圖上所有爆彈桶／爆鱗（自身免疫）'}],c:['bite','stomp']},
+  image026:{s:[{name:'瘴氣吐息',range:'line',len:3,dmg:3,hit:['poison'],desc:'噴出屍套瘴氣直線 3 格，命中者中毒'},
+    {name:'瘴氣擴散',range:'radius',len:2,dmg:1,hit:['poison'],desc:'瘴氣籠罩周圍 2 圈'},
+    {name:'屍氣吸收',range:'radius',len:1,dmg:2,move:0,self:['heal:3'],desc:'吸收周圍瘴氣回復 3 HP，周圍一圈受傷'}],c:['bite','tail']},
+  image027:{s:[{name:'龍捲風',range:'random',len:3,n:3,dmg:3,hit:['push'],desc:'召喚龍捲風隨機席捲附近 3 格，命中者被吹退'},
+    {name:'風壓咆哮',range:'radius',len:2,dmg:0,move:0,hit:['slow'],desc:'風之屏障爆發，周圍 2 圈減速'},
+    {name:'暴風吐息',range:'line',len:3,dmg:4,hit:['push'],desc:'噴出暴風直線 3 格，命中者被吹退'}],c:['bite','tail']},
+  image028:{s:[{name:'超新星',range:'radius',len:2,dmg:6,move:0,hit:['burn'],desc:'龍炎爆發！周圍 2 圈全部重創灼燒'},
+    {name:'火焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出烈焰直線 3 格'},
+    {name:'粉塵爆炸',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'散布爆炸粉塵，隨機引爆附近 3 格'}],c:['bite','stomp']},
+  image029:{s:[{name:'青炎超新星',range:'radius',len:2,dmg:5,move:0,hit:['burn'],desc:'青色龍炎爆發，周圍 2 圈灼燒'},
+    {name:'熱風領域',range:'all',dmg:1,move:0,hit:['burn'],desc:'全場捲起高溫熱風，所有獵人受 1 傷並灼燒'},
+    {name:'青炎吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出青炎直線 3 格'}],c:['bite','tail']},
+  image030:{s:[{name:'岩漿噴發',range:'random',len:3,n:4,dmg:4,move:0,hit:['burn'],desc:'背部火山噴發，隨機 4 格落下熔岩'},
+    {name:'地面震盪',range:'radius',len:2,dmg:3,move:0,hit:['stun'],desc:'巨體踏地，周圍 2 圈震盪暈眩'},
+    {name:'熔岩流',range:'line',len:4,dmg:4,move:0,hit:['burn'],desc:'熔岩沿直線流出 4 格'}],c:['stomp','roar']},
+  image031:{s:[{name:'落雷',range:'random',len:3,n:4,dmg:4,hit:['stun'],desc:'召喚雷擊隨機落在附近 4 格，命中者麻痺'},
+    {name:'雷擊角衝',range:'line',len:2,dmg:3,move:2,hit:['stun'],desc:'帶電角衝刺 2 格，前方 2 格麻痺'},
+    {name:'雷光鎧甲',range:'radius',len:1,dmg:2,move:0,self:['armor'],desc:'雷光纏身，周圍一圈受傷，自身下回合受傷 -2'}],c:['bite','stomp']},
+  image032:{s:[{name:'能量光束',range:'line',len:5,dmg:5,hit:['burn'],desc:'放出龍脈能量光束，貫穿直線 5 格'},
+    {name:'爆裂脈衝',range:'radius',len:2,dmg:4,move:0,desc:'龍脈能量從地面爆發，周圍 2 圈受創'},
+    {name:'能量凝聚',range:'none',move:0,self:['armor','heal:3'],desc:'吸收龍脈能量回復 3 HP，下回合受傷 -2'}],c:['bite','tail']},
+  image033:{s:[{name:'火焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出烈焰直線 3 格'},
+    {name:'突進咬噬',range:'line',len:1,dmg:4,move:2,desc:'衝刺 2 格後猛咬正前方'},
+    {name:'鼻翼展開',range:'radius',len:1,dmg:2,move:0,self:['enrage'],desc:'鼻翼張開進入永久狂暴，周圍一圈受傷'}],c:['bite','stomp']},
+  image034:{s:[{name:'黃金吐息',range:'line',len:4,dmg:5,hit:['burn'],desc:'噴出黃金熔流直線 4 格'},
+    {name:'黃金角撞擊',range:'arc',dmg:5,hit:['push'],desc:'巨角橫掃前方 3 格，命中者撞退'},
+    {name:'黃金粉塵',range:'radius',len:2,dmg:2,hit:['burn'],desc:'抖落熾熱金粉，周圍 2 圈灼燒'}],c:['stomp','roar']},
+};
+const FX = {
+  slow:{icon:'🐌',label:'減速',turns:1,desc:'下回合 -1 步'},stun:{icon:'⚡',label:'麻痺',turns:1,desc:'下回合無法移動'},
+  poison:{icon:'☠️',label:'中毒',turns:2,desc:'接下來 2 回合各 -1 HP'},burn:{icon:'🔥',label:'灼燒',turns:2,desc:'接下來 2 回合各 -1 HP'},
+  bleed:{icon:'🩸',label:'流血',turns:2,desc:'接下來 2 回合各 -1 HP'},push:{icon:'💨',label:'擊退',turns:0,desc:'被推離魔物 1 格'},
+  fly:{icon:'🕊️',label:'飛行',desc:'下回合近戰打不到'},armor:{icon:'🛡️',label:'硬化',desc:'下回合受傷 -2'},enrage:{icon:'🔥',label:'狂暴',desc:'永久傷害 +1'},
+};
+const movesetOf=file=>MOVESETS[file.slice(0,8)];
+const monsterMovePool=()=>{const ms=movesetOf(monster.img);return ms.s.map(a=>({...a,sig:true,w:1.5})).concat(ms.c.map(k=>({...COMMON[k],w:1})));};
+const fxSummary=a=>{const parts=[];if(a.self)parts.push('自身：'+a.self.map(s=>{const k=s.split(':')[0];return k==='bombs'?'散布爆彈':k==='detonate'?'引爆全場':k==='heal'?'回復'+s.split(':')[1]:FX[k].label;}).join('、'));
+  if(a.hit&&a.hit.length)parts.push('命中：'+a.hit.map(h=>FX[h].icon+FX[h].label).join('、'));return parts.join('｜');};
 const CARDS_DB = {
   basic:{id:'basic',type:'attack',isItem:false,name:'基礎斬擊',glyph:'⚔️',desc:'相鄰時造成 [武器基礎] 傷害'},
   heavy:{id:'heavy',type:'attack',isItem:false,name:'重擊',glyph:'💢',desc:'相鄰時造成 [武器基礎+1] 傷害'},
@@ -338,7 +450,9 @@ let players = [
   {id:0,name:'大劍',hp:15,maxHp:15,move:1,maxMove:1,x:2,y:6,icon:'🗡️',color:'red',classType:'gs',baseDmg:2,comboUsed:false},
   {id:1,name:'片手劍',hp:12,maxHp:12,move:2,maxMove:2,x:4,y:6,icon:'🛡️',color:'blue',classType:'sns',baseDmg:1,comboUsed:false},
 ];
-const monster = {name:'',img:'',hp:40,maxHp:40,dmgMod:0,x:3,y:1,intent:null,blinded:false,phantomX:-1,phantomY:-1};
+const monster = {name:'',img:'',hp:40,maxHp:40,dmgMod:0,x:3,y:1,intent:null,blinded:false,phantomX:-1,phantomY:-1,fly:0,armor:0,enraged:false,lastMove:''};
+const newStatus=()=>({slow:0,stun:0,poison:0,burn:0,bleed:0});
+players.forEach(p=>p.st=newStatus());
 
 /* ===================== HEX MATH ===================== */
 const offsetToAxial=(c,r)=>({q:c-Math.floor(r/2),r});
@@ -421,7 +535,7 @@ function renderMonsterGrid(){
   const m=MONSTERS[selectedMonster],t=TIER[m.t];
   document.getElementById('mon-preview-img').src=m.f;
   document.getElementById('mon-preview-name').innerText=m.n;
-  document.getElementById('mon-preview-stats').innerText=`${t.label} ・ HP ${t.hp} ・ 攻擊修正 ${t.dmg>=0?'+':''}${t.dmg}`;
+  document.getElementById('mon-preview-stats').innerHTML=`${t.label} ・ HP ${t.hp} ・ 攻擊修正 ${t.dmg>=0?'+':''}${t.dmg}<br><span class="text-amber-300">獨家招式：</span>${movesetOf(m.f).s.map(a=>a.name).join('／')}`;
 }
 function renderDeckBuilder(){
   const list=document.getElementById('deck-builder-list');list.innerHTML='';let total=0,items=0;
@@ -455,7 +569,7 @@ function setupStep(dir){
 
 /* ===================== GAME START ===================== */
 function startGame(){
-  stats.damageTaken=0;stats.defendUsed=0;stats.lastHit='';
+  stats.damageTaken=0;stats.defendUsed=0;stats.lastHit='';players.forEach(p=>p.st=newStatus());
   players[0].name=document.getElementById('setup-p0-name').value||'大劍';
   players[0].icon=document.getElementById('setup-p0-icon').value||'🗡️';
   players[1].name=document.getElementById('setup-p1-name').value||'片手劍';
@@ -489,6 +603,7 @@ function renderHand(){
   hand.forEach((card,i)=>{
     let playable=true,hint='';
     if(card.type==='defend'){playable=false;hint='被動';}
+    else if((card.type==='attack'||card.type==='skill')&&monster.fly>0){playable=false;hint='飛行中';}
     else if(card.type==='attack'&&!adj){playable=false;hint='需相鄰';}
     else if(card.type==='skill'&&(!adj||p.move<1)){playable=false;hint=!adj?'需相鄰':'需 1 步';}
     else if(card.id==='potion'&&p.hp>=p.maxHp){playable=false;hint='HP已滿';}
@@ -505,7 +620,7 @@ function renderHand(){
 function removeFromHand(i,toRemoved=false){const card=hand[i];(toRemoved?removedCards:discardPile).push(card);hand.splice(i,1);}
 function discardForMove(i){if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];const card=hand[i];p.move+=1;logMsg(`💨 ${pName(p)} 棄掉 [${card.name}] 換得 +1 步`);toast('棄牌換步：+1 步移動力');removeFromHand(i);cancelPlacement();updateUI();}
 function cancelPlacement(){placementMode=null;document.getElementById('placement-hint').classList.add('hidden');}
-function hitMonster(dmg,src='weapon',x,y){monster.hp-=dmg;stats.lastHit=src;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
+function hitMonster(dmg,src='weapon',x,y){if(monster.armor>0&&dmg>1){dmg=Math.max(1,dmg-2);logMsg(`🛡️ ${monster.name} 硬化中，傷害減為 ${dmg}`);}monster.hp-=dmg;stats.lastHit=src;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
 function playCard(i){
   if(!gameActive||isProcessing)return;const card=hand[i],p=players[activePlayerIndex];const dist=getDistance(p.x,p.y,monster.x,monster.y);
   if(card.isItem){
@@ -515,6 +630,7 @@ function playCard(i){
     else if(card.id==='trap'||card.id==='bomb'){placementMode={type:card.id,cardIndex:i};document.getElementById('placement-hint').classList.remove('hidden');toast('點擊相鄰空格放置');updateUI();return;}
     removeFromHand(i,true);updateUI();return;
   }
+  if((card.type==='skill'||card.type==='attack')&&monster.fly>0)return toast('魔物飛在空中，近戰打不到！');
   if(card.type==='skill'){
     if(p.move<1)return toast('技能需要 1 步');if(dist>1)return toast('必須相鄰');
     p.move-=1;
@@ -551,13 +667,14 @@ async function handleGridClick(x,y){
   if(getDistance(p.x,p.y,x,y)===1&&p.move>0){p.x=x;p.y=y;p.move--;updateUI();}
   else if(p.move<=0)toast('步數用完了，可按手牌的「棄牌 +1步」換移動力');
 }
-async function triggerBombExplosion(cx,cy){
+async function triggerBombExplosion(cx,cy,skipMonster=false){
   isProcessing=true;const idx=bombPos.findIndex(b=>b.x===cx&&b.y===cy);if(idx!==-1)bombPos.splice(idx,1);
   updateUI();spawnFx(cx,cy,'<span class="text-4xl">💥</span>');getNeighbors(cx,cy).forEach(n=>spawnFx(n.x,n.y,'<span class="text-2xl opacity-80">🔥</span>'));shakeScreen();
   await new Promise(r=>setTimeout(r,350));
-  if(monster.hp>0&&getDistance(monster.x,monster.y,cx,cy)<=1){hitMonster(4,'bomb');logMsg(`💥 ${monster.name} 被炸彈波及 4 傷！`);}
+  if(monster.hp>0&&!skipMonster&&getDistance(monster.x,monster.y,cx,cy)<=1){
+    if(monster.fly>0)logMsg(`🕊️ ${monster.name} 在空中，爆炸沒炸到牠`);else{hitMonster(4,'bomb');logMsg(`💥 ${monster.name} 被炸彈波及 4 傷！`);}}
   for(const p of players)if(p.hp>0&&getDistance(p.x,p.y,cx,cy)<=1){logMsg(`⚠️ ${pName(p)} 在爆炸範圍內！`);await applyDamageToPlayer(p,4,'大爆彈桶爆炸');}
-  for(const cb of bombPos.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){logMsg('⛓️ 連環爆炸！');await triggerBombExplosion(cb.x,cb.y);}
+  for(const cb of bombPos.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){logMsg('⛓️ 連環爆炸！');await triggerBombExplosion(cb.x,cb.y,skipMonster);}
   updateUI();checkWinLose();isProcessing=false;
 }
 function showDefenseModal(p,dmg,src,hasDodge,hasShield){
@@ -570,41 +687,76 @@ function showDefenseModal(p,dmg,src,hasDodge,hasShield){
   });
 }
 async function applyDamageToPlayer(p,dmg,src){
-  if(p.hp<=0)return;const dI=hand.findIndex(c=>c.id==='dodge'),sI=hand.findIndex(c=>c.id==='shield');
-  let taken=dmg;
+  if(p.hp<=0)return {taken:0,dodged:false};const dI=hand.findIndex(c=>c.id==='dodge'),sI=hand.findIndex(c=>c.id==='shield');
+  let taken=dmg,dodged=false;
   if(dI===-1&&sI===-1){logMsg(`🩸 ${pName(p)} 無防禦手段，受到 ${dmg} 傷`);}
   else{const ch=await showDefenseModal(p,dmg,src,dI!==-1,sI!==-1);
-    if(ch==='dodge'){taken=0;stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='dodge'));logMsg(`💨 ${pName(p)} 翻滾迴避，完美閃躲！`);}
+    if(ch==='dodge'){taken=0;dodged=true;stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='dodge'));logMsg(`💨 ${pName(p)} 翻滾迴避，完美閃躲！`);}
     else if(ch==='shield'){taken=Math.max(0,dmg-2);stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='shield'));logMsg(`🛡️ ${pName(p)} 舉盾，受到 ${taken} 傷`);}
     else logMsg(`🩸 ${pName(p)} 硬扛 ${dmg} 傷`);}
   p.hp-=taken;stats.damageTaken+=taken;if(taken>0)spawnFx(p.x,p.y,`<span class="text-xl text-red-400">-${taken}</span>`);else spawnFx(p.x,p.y,'<span class="text-base text-blue-200">MISS</span>');
-  updateUI();
+  updateUI();return {taken,dodged};
 }
+function pushPlayer(p){let best=null,bd=getDistance(p.x,p.y,monster.x,monster.y);
+  getNeighbors(p.x,p.y).forEach(n=>{if(isOccupied(n.x,n.y))return;const d=getDistance(n.x,n.y,monster.x,monster.y);if(d>bd){bd=d;best=n;}});
+  if(best){p.x=best.x;p.y=best.y;logMsg(`💨 ${pName(p)} 被擊退 1 格`);}}
+function applyHitEffects(p,hit){if(!hit||p.hp<=0)return;for(const h of hit){
+  if(h==='push')pushPlayer(p);else{p.st[h]=Math.max(p.st[h],FX[h].turns);logMsg(`${FX[h].icon} ${pName(p)} ${FX[h].label}！${FX[h].desc}`);}}}
 
 /* ===================== MONSTER AI ===================== */
+const HEX_DIRS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
+function cellsWithin(cx,cy,r,includeCenter=false){const out=[];for(let y=0;y<GRID_SIZE;y++)for(let x=0;x<GRID_SIZE;x++){const d=getDistance(x,y,cx,cy);if(d<=r&&(includeCenter||d>0))out.push({x,y});}return out;}
+function pickWeighted(arr){let t=arr.reduce((s,a)=>s+a.w,0),r=Math.random()*t;for(const a of arr){r-=a.w;if(r<=0)return a;}return arr[arr.length-1];}
+function isEnraged(){return monster.enraged||monster.hp<=monster.maxHp*.4;}
 function planMonsterIntent(){
   if(monster.hp<=0)return;
-  const enraged=monster.hp<=monster.maxHp*.4;
-  const pool=enraged?BASE_ACTIONS.filter(a=>a.name!=='突進咬噬').concat(BASE_ACTIONS[2]):BASE_ACTIONS;
-  const base=pool[Math.floor(Math.random()*pool.length)];
-  monster.intent={...base,dmg:base.dmg+monster.dmgMod+(enraged?1:0),name:(enraged?'🔥狂暴・':'')+base.name};
+  const enraged=isEnraged();
+  let pool=monsterMovePool();
+  if(enraged&&pool.some(a=>a.sig))pool=pool.filter(a=>a.name!=='咬擊'&&a.name!=='咆哮');
+  if(monster.lastMove&&pool.length>1)pool=pool.filter(a=>a.name!==monster.lastMove);
+  const base=pickWeighted(pool);monster.lastMove=base.name;
+  const dmg=base.dmg>0?Math.max(1,base.dmg+monster.dmgMod+(enraged?1:0)):0;
+  monster.intent={...base,dmg,name:(enraged?'🔥':'')+base.name,fx:fxSummary(base)};
   let target=players[0],minD=999;players.forEach(p=>{if(p.hp<=0)return;const d=getDistance(monster.x,monster.y,p.x,p.y);if(d<minD){minD=d;target=p;}});
-  let best={x:monster.x,y:monster.y},bd=999;
-  getNeighbors(monster.x,monster.y).forEach(n=>{if(trapPos.some(t=>t.x===n.x&&t.y===n.y)&&Math.random()<.5)return;const d=getDistance(n.x,n.y,target.x,target.y);if(d<bd){bd=d;best=n;}});
-  monster.phantomX=best.x;monster.phantomY=best.y;
-  const ma=offsetToAxial(monster.x,monster.y),pa=offsetToAxial(best.x,best.y);let dq=pa.q-ma.q,dr=pa.r-ma.r;if(!dq&&!dr){dq=1;dr=0;}
-  dangerZones=[];
-  if(base.rangeType==='line')for(let i=1;i<=base.length;i++)dangerZones.push(axialToOffset(pa.q+dq*i,pa.r+dr*i));
-  else for(let a=-base.length;a<=base.length;a++)for(let b=-base.length;b<=base.length;b++)if(Math.abs(a+b)<=base.length&&(a||b))dangerZones.push(axialToOffset(pa.q+a,pa.r+b));
-  dangerZones=dangerZones.filter(inBounds);
-  logMsg(`⚠️ ${monster.name} 鎖定 ${pName(target)}，準備【${monster.intent.name}】`);
+  // 逼近：每步挑離目標最近的相鄰格（可撞進獵人所在格造成擊退）
+  let cur={x:monster.x,y:monster.y},prev=cur;
+  for(let s=0;s<(base.move??1);s++){
+    if(cur.x===target.x&&cur.y===target.y)break;
+    let best=null,bd=getDistance(cur.x,cur.y,target.x,target.y);
+    getNeighbors(cur.x,cur.y).forEach(n=>{if(trapPos.some(t=>t.x===n.x&&t.y===n.y)&&Math.random()<.5)return;if(players.some(p=>p.hp>0&&p.x===n.x&&p.y===n.y&&p!==target))return;const d=getDistance(n.x,n.y,target.x,target.y);if(d<bd){bd=d;best=n;}});
+    if(!best)break;prev=cur;cur=best;
+  }
+  monster.phantomX=cur.x;monster.phantomY=cur.y;
+  const pa=offsetToAxial(cur.x,cur.y);let dq,dr;
+  if(prev.x!==cur.x||prev.y!==cur.y){const a=offsetToAxial(prev.x,prev.y);dq=pa.q-a.q;dr=pa.r-a.r;}
+  else{let bn=null,bd=999;getNeighbors(cur.x,cur.y).forEach(n=>{const d=getDistance(n.x,n.y,target.x,target.y);if(d<bd){bd=d;bn=n;}});const a=bn?offsetToAxial(bn.x,bn.y):{q:pa.q+1,r:pa.r};dq=a.q-pa.q;dr=a.r-pa.r;}
+  const di=Math.max(0,HEX_DIRS.findIndex(d=>d[0]===dq&&d[1]===dr));
+  dangerZones=[];const L=base.len||1;
+  switch(base.range){
+    case 'line':for(let i=1;i<=L;i++)dangerZones.push(axialToOffset(pa.q+dq*i,pa.r+dr*i));break;
+    case 'radius':dangerZones=cellsWithin(cur.x,cur.y,L);break;
+    case 'ring':dangerZones=cellsWithin(cur.x,cur.y,2).filter(c=>getDistance(c.x,c.y,cur.x,cur.y)===2);break;
+    case 'arc':[di,(di+1)%6,(di+5)%6].forEach(k=>dangerZones.push(axialToOffset(pa.q+HEX_DIRS[k][0],pa.r+HEX_DIRS[k][1])));break;
+    case 'target':dangerZones=cellsWithin(target.x,target.y,base.len||0,true);break;
+    case 'random':dangerZones=cellsWithin(cur.x,cur.y,L).sort(()=>Math.random()-.5).slice(0,base.n||3);break;
+    case 'all':dangerZones=cellsWithin(cur.x,cur.y,99);break;
+    default:dangerZones=[];
+  }
+  dangerZones=dangerZones.filter(c=>inBounds(c)&&!(c.x===cur.x&&c.y===cur.y));
+  logMsg(`⚠️ ${monster.name} 鎖定 ${pName(target)}，準備【${monster.intent.name}】：${base.desc}`);
 }
 async function endTurn(){
   if(!gameActive||isProcessing)return;isProcessing=true;cancelPlacement();
+  if(monster.fly>0){monster.fly=0;logMsg(`🕊️ ${monster.name} 降落了`);}
+  monster.armor=0;
   const ma=offsetToAxial(monster.x,monster.y),pa=offsetToAxial(monster.phantomX,monster.phantomY);let pq=pa.q-ma.q,pr=pa.r-ma.r;if(!pq&&!pr){pq=1;pr=0;}
   for(const p of players)if(p.hp>0&&p.x===monster.phantomX&&p.y===monster.phantomY){
     const a=offsetToAxial(p.x,p.y),np=axialToOffset(a.q+pq,a.r+pr);logMsg(`💥 ${monster.name} 推進，將 ${pName(p)} 撞退 1 格！`);
-    if(!inBounds(np)){p.hp=0;logMsg(`💀 ${pName(p)} 被擠下懸崖！`,true);shakeScreen();}else{p.x=np.x;p.y=np.y;}
+    if(!inBounds(np)||isOccupied(np.x,np.y)){
+      const free=getNeighbors(p.x,p.y).filter(n=>!isOccupied(n.x,n.y)&&!(n.x===monster.phantomX&&n.y===monster.phantomY));
+      p.hp-=3;stats.damageTaken+=3;spawnFx(p.x,p.y,'<span class="text-xl text-red-400">-3</span>');logMsg(`💥 ${pName(p)} 被撞到邊緣，重摔受到 3 傷（無法防禦）！`,true);shakeScreen();
+      if(free.length){const f=free[Math.floor(Math.random()*free.length)];p.x=f.x;p.y=f.y;}
+    }else{p.x=np.x;p.y=np.y;}
   }
   monster.x=monster.phantomX;monster.y=monster.phantomY;updateUI();await new Promise(r=>setTimeout(r,250));
   const tI=trapPos.findIndex(t=>t.x===monster.x&&t.y===monster.y);
@@ -613,14 +765,34 @@ async function endTurn(){
     if(bombPos.some(b=>b.x===monster.x&&b.y===monster.y)){logMsg(`💥 ${monster.name} 踩到爆彈桶！`,true);await triggerBombExplosion(monster.x,monster.y);}
     if(monster.hp>0&&monster.blinded){logMsg(`😵 ${monster.name} 被閃光致盲，攻擊落空`);}
     else if(monster.hp>0){
+      const it=monster.intent;
+      logMsg(`🐲 ${monster.name} 使出【${it.name}】！${it.desc}`,true);toast(`🐲 ${monster.name}【${it.name}】`);
       shakeScreen();dangerZones.forEach(z=>spawnFx(z.x,z.y,'<span class="text-2xl">💢</span>'));
+      for(const s of (it.self||[])){
+        if(s==='fly'){monster.fly=1;logMsg(`🕊️ ${monster.name} 飛上天空，下回合近戰無法命中！`);}
+        else if(s==='armor'){monster.armor=1;logMsg(`🛡️ ${monster.name} 硬化，下回合受到的傷害 -2`);}
+        else if(s==='enrage'){monster.enraged=true;logMsg(`🔥 ${monster.name} 進入永久狂暴！招式傷害 +1`);}
+        else if(s.startsWith('heal:')){const n=+s.slice(5);monster.hp=Math.min(monster.maxHp,monster.hp+n);spawnFx(monster.x,monster.y,`<span class="text-2xl text-green-300">+${n}</span>`);logMsg(`💚 ${monster.name} 回復 ${n} HP`);}
+        else if(s.startsWith('bombs:')){const n=+s.slice(6);const cells=cellsWithin(monster.x,monster.y,2).filter(c=>!isOccupied(c.x,c.y)&&!trapPos.concat(bombPos).some(t=>t.x===c.x&&t.y===c.y)).sort(()=>Math.random()-.5).slice(0,n);cells.forEach(c=>bombPos.push(c));logMsg(`💣 ${monster.name} 散布了 ${cells.length} 顆爆彈！可以拿來反炸牠，但小心別站旁邊`);}
+        else if(s==='detonate'){const list=[...bombPos];if(!list.length)logMsg('（地圖上沒有爆彈可引爆）');for(const b of list)if(bombPos.some(x=>x.x===b.x&&x.y===b.y))await triggerBombExplosion(b.x,b.y,true);}
+      }
+      updateUI();
       const hits=dangerZones.filter(z=>bombPos.some(b=>b.x===z.x&&b.y===z.y));
       if(hits.length){logMsg('🔥 攻擊掃到爆彈桶，引爆！',true);for(const z of hits)if(bombPos.some(b=>b.x===z.x&&b.y===z.y))await triggerBombExplosion(z.x,z.y);}
-      if(monster.hp>0)for(const p of players)if(p.hp>0&&dangerZones.some(z=>z.x===p.x&&z.y===p.y))await applyDamageToPlayer(p,monster.intent.dmg,monster.intent.name);
+      if(monster.hp>0)for(const p of players)if(p.hp>0&&dangerZones.some(z=>z.x===p.x&&z.y===p.y)){
+        let dodged=false;if(it.dmg>0){const r=await applyDamageToPlayer(p,it.dmg,it.name);dodged=r.dodged;}else logMsg(`💢 ${pName(p)} 被【${it.name}】波及`);
+        if(!dodged)applyHitEffects(p,it.hit);
+      }
     }
   }
   monster.blinded=false;checkWinLose();if(!gameActive){isProcessing=false;return;}
-  currentTurn++;players.forEach(p=>{p.move=p.maxMove;p.comboUsed=false;});
+  currentTurn++;
+  players.forEach(p=>{p.move=p.maxMove;p.comboUsed=false;if(p.hp<=0)return;const st=p.st;
+    if(st.stun>0){p.move=0;st.stun--;logMsg(`⚡ ${pName(p)} 麻痺中，本回合無法移動`);}
+    else if(st.slow>0){p.move=Math.max(0,p.move-1);st.slow--;logMsg(`🐌 ${pName(p)} 減速，本回合 -1 步`);}
+    for(const k of ['poison','burn','bleed'])if(st[k]>0){st[k]--;p.hp-=1;stats.damageTaken+=1;spawnFx(p.x,p.y,'<span class="text-lg text-purple-300">-1</span>');logMsg(`${FX[k].icon} ${pName(p)} ${FX[k].label}中 -1 HP`);}
+  });
+  checkWinLose();if(!gameActive){isProcessing=false;return;}
   drawCards(MAX_HAND-hand.length);planMonsterIntent();updateUI();isProcessing=false;
 }
 function checkWinLose(){
@@ -637,7 +809,8 @@ function showGameOver(t,cls,sub,fresh=[]){const o=document.getElementById('game-
 /* ===================== RENDER ===================== */
 function updateUI(){
   players.forEach(p=>{
-    document.getElementById(`p${p.id}-hp`).innerText=`${Math.max(0,p.hp)}/${p.maxHp}`;
+    const stIcons=Object.keys(p.st).filter(k=>p.st[k]>0).map(k=>FX[k].icon).join('');
+    document.getElementById(`p${p.id}-hp`).innerText=`${Math.max(0,p.hp)}/${p.maxHp}${stIcons?' '+stIcons:''}`;
     document.getElementById(`p${p.id}-hpbar`).style.width=`${Math.max(0,p.hp/p.maxHp*100)}%`;
     document.getElementById(`p${p.id}-move`).innerText=p.move;
     document.getElementById(`p${p.id}-name`).innerText=p.name;document.getElementById(`p${p.id}-icon`).innerText=p.icon;
@@ -647,8 +820,9 @@ function updateUI(){
   document.getElementById('monster-hp-bar').style.width=`${Math.max(0,monster.hp/monster.maxHp*100)}%`;
   document.getElementById('monster-hp-text').innerText=`${Math.max(0,monster.hp)}/${monster.maxHp}`;
   const intentOn=monster.intent&&monster.hp>0&&!monster.blinded;
-  document.getElementById('monster-intent-name').innerText=intentOn?`⚠️ ${monster.intent.name} (${monster.intent.dmg}傷)`:'😵 攻擊被取消';
-  document.getElementById('monster-intent-desc').innerText=intentOn?monster.intent.desc:'本回合魔物仍會移動，但不會攻擊';
+  const mst=(monster.fly>0?'🕊️飛行 ':'')+(monster.armor>0?'🛡️硬化 ':'')+(monster.enraged?'🔥狂暴 ':'');
+  document.getElementById('monster-intent-name').innerText=intentOn?`${mst}⚠️ ${monster.intent.name}${monster.intent.dmg>0?` (${monster.intent.dmg}傷)`:''}`:`${mst}😵 攻擊被取消`;
+  document.getElementById('monster-intent-desc').innerText=intentOn?`${monster.intent.desc}${monster.intent.fx?'　'+monster.intent.fx:''}`:'本回合魔物仍會移動，但不會攻擊';
   document.getElementById('turn-display').innerText=`第 ${currentTurn} 回合`;
   const ap=players[activePlayerIndex];const reach=(ap.move>0&&!placementMode)?getNeighbors(ap.x,ap.y).filter(n=>!isOccupied(n.x,n.y)):[];
   const placeable=placementMode?getNeighbors(ap.x,ap.y).filter(n=>!isOccupied(n.x,n.y)&&!trapPos.concat(bombPos).some(t=>t.x===n.x&&t.y===n.y)):[];
