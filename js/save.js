@@ -3,7 +3,7 @@
    mhdesk_story_v1    劇情模式進度
    mhdesk_settings_v1 設定
    mhdesk_free_v1     自由對戰上次的設定 */
-import { MONSTERS } from './data/monsters.js';
+import { MONSTERS, REMAP_V2 } from './data/monsters.js';
 import { startingOwned } from './data/crafting.js';
 import { avatarId } from './icons.js';
 
@@ -12,9 +12,17 @@ const read = k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e)
 const write = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
 
 /* ---------- 狩獵紀錄 ---------- */
-const freshRecords = () => ({hunts:{}, ach:{}, totals:{wins:0,losses:0}});
+const freshRecords = () => ({v:2, hunts:{}, ach:{}, totals:{wins:0,losses:0}});
+/* 2026-09 更正魔物圖騰：把舊編號的素材／紀錄搬到魔物現在的圖片編號（只搬一次） */
+const remapKey = k => { const m=/^(image\d{3})(.*)$/.exec(k); return m && REMAP_V2[m[1]] ? REMAP_V2[m[1]]+m[2] : k; };
+const remapObj = o => { const out={}; for(const [k,v] of Object.entries(o||{})){ const nk=remapKey(k); out[nk]=typeof v==='number'?(out[nk]||0)+v:v; } return out; };
+function migrateRecords(s){
+  if(!(s&&s.hunts&&s.totals)) return null;
+  if((s.v||1)<2){ s.hunts=remapObj(s.hunts); s.v=2; }
+  return s;
+}
 export let records = loadRecords();
-function loadRecords(){ const s=read(KEYS.records); return (s&&s.hunts&&s.totals)?s:freshRecords(); }
+function loadRecords(){ const s=migrateRecords(read(KEYS.records)); if(s) write(KEYS.records, s); return s||freshRecords(); }
 export const saveRecords = () => write(KEYS.records, records);
 
 const speciesWon = s => Object.values(s.hunts).filter(h=>h.wins>0).length;
@@ -61,7 +69,7 @@ export let settings = {...DEFAULT_SETTINGS, ...(read(KEYS.settings)||{})};
 export const saveSettings = () => write(KEYS.settings, settings);
 
 /* ---------- 劇情進度 ---------- */
-export const STORY_VERSION = 1;
+export const STORY_VERSION = 2;
 export function newStory(hunter){
   const owned = startingOwned();
   return {v:STORY_VERSION, created:Date.now(), hunter:{name:hunter.name||'獵人', icon:avatarId(hunter.icon), weapon:hunter.weapon||'gs'},
@@ -72,6 +80,7 @@ export function newStory(hunter){
 function migrateStory(s){
   if(!s || typeof s!=='object' || !s.hunter) return null;
   /* 未來改版時在這裡補欄位 */
+  if((s.v||1)<2) s.mats = remapObj(s.mats);
   s.v = STORY_VERSION;
   s.mats = s.mats||{}; s.cleared = s.cleared||{};
   s.hunter.icon = avatarId(s.hunter.icon);
@@ -100,13 +109,13 @@ export function importCode(code){
   const s = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
   if(s && s.kind==='mhdesk'){
     if(!s.records||!s.records.hunts) throw new Error('bad');
-    records = s.records; saveRecords();
+    records = migrateRecords(s.records); saveRecords();
     story = migrateStory(s.story); if(story) saveStory(); else clearStory();
     if(s.settings){ settings = {...DEFAULT_SETTINGS, ...s.settings}; saveSettings(); }
     if(s.free) saveFreeCfg(s.free);
     return 'all';
   }
-  if(s && s.hunts && s.totals){ records = s; saveRecords(); return 'records'; }
+  if(s && s.hunts && s.totals){ records = migrateRecords(s); saveRecords(); return 'records'; }
   throw new Error('bad');
 }
 export function resetRecords(){ records = freshRecords(); saveRecords(); }

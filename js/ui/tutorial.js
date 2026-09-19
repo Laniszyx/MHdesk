@@ -149,7 +149,7 @@ export function startTutorial(spec, o){
     event:(n,i)=>{ /* 引擎事件在畫面更新後處理 */ queueMicrotask(()=>onEvent(n,i)); },
   };
   launchBattle({mode:'tutorial', questId:'q0-1', hunters:[{...spec}], deckOrder:DECK, deck:DECK,
-    mons:[{key:'image010', hp:12, pool:POOL, dmgMod:0, name:'搔鳥（訓練用）'}], handSize:4, carts:3, turnLimit:null, objective:'hunt',
+    mons:[{key:'image023', hp:12, pool:POOL, dmgMod:0, name:'搔鳥（訓練用）'}], handSize:4, carts:3, turnLimit:null, objective:'hunt',
     startPos:[{x:3,y:5}], monPos:{x:3,y:3}, script},
     {title:'第 0 關・新手訓練', onFinish:r=>{ end(); opts.onFinish && opts.onFinish(r); }, onAbandon:()=>{ end(); opts.onAbandon && opts.onAbandon(); },
      abandonLabel:'離開訓練', abandonText:'這次訓練進度不會保存。想直接開放第一章，請改按「跳過教學」。',

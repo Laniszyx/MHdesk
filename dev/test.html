@@ -75,7 +75,7 @@ document.getElementById('f').onload=async()=>{
     start({hunters:[H('gs')],mons:[{key:'image024'}]});m=B.mon;B.traps.push({x:m.x,y:m.y+1,type:'shock'});m.intent={name:'x',desc:'',dmg:3,range:'none'};m.px=m.x;m.py=m.y+1;B.danger=[];
     await E.endTurn();ok(m.dizzy&&m.y===2,'shock trap dizzies monster');
     mx=m.x;my=m.y;await E.endTurn();ok(m.x===mx&&m.y===my&&!m.dizzy,'shocked monster skips next turn');
-    start({hunters:[H('gs')],mons:[{key:'image009'}]});m=B.mon;m.hp=2;ok(!E.capturable(),'tier3 cannot be captured');
+    start({hunters:[H('gs')],mons:[{key:'image025'}]});m=B.mon;m.hp=2;ok(!E.capturable(),'tier3 cannot be captured');
 
     /* ---- 貓車、回合上限 ---- */
     start({hunters:[H('gs')],carts:3,turnLimit:5});h=B.hunters[0];noIntent();h.x=0;h.y=0;h.hp=0;E.checkEnd();
