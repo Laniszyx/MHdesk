@@ -1,0 +1,113 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>引擎測試</title></head>
+<body style="margin:0;background:#222;color:#0f0;font:12px monospace;display:flex;gap:8px">
+<pre id="out" style="flex:1;white-space:pre-wrap">RUNNING</pre>
+<iframe id="f" style="width:390px;height:844px;border:0;flex-shrink:0" src="../index.html#menu"></iframe>
+<script>
+/* 用法：用本機伺服器開啟 dev/test.html（例如 python -m http.server），看左側 PASS/FAIL。 */
+const out=[];let fails=0;const log=(...a)=>out.push(a.join(' '));
+const ok=(c,m)=>{if(!c)fails++;log(c?'PASS':'FAIL',m);};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const deck=o=>Object.entries(o).flatMap(([k,n])=>Array(n).fill(k));
+document.getElementById('f').onload=async()=>{
+  const w=document.getElementById('f').contentWindow,d=w.document;
+  try{
+    for(let i=0;i<50&&!w.__mh;i++)await sleep(50);
+    const {E,B,S,launchBattle,setInstant}=w.__mh;setInstant(true);
+    w.localStorage.clear();
+    const H=(weapon,extra={})=>({name:weapon,icon:'🧑',weapon,...extra});
+    const start=(cfg)=>launchBattle({mode:'free',deck:deck({basic:10,heavy:10,potion:10}),mons:[{key:'image001'}],objective:'hunt',carts:null,...cfg},{title:'t'});
+    const CARD=id=>w.__mh.CARDS_DB[id];
+    const give=(...ids)=>{B.hand.length=0;for(const id of ids)B.hand.push(CARD(id));};
+    const noIntent=()=>{B.danger=[];B.mon.intent={name:'x',desc:'',dmg:0,range:'none'};B.mon.px=B.mon.x;B.mon.py=B.mon.y;};
+
+    /* ---- 基本：雙人開局 ---- */
+    start({hunters:[H('gs'),H('sns')]});
+    ok(B.hunters.length===2&&B.handSize===3&&B.hand.length===3,'duo: 2 hunters, hand 3');
+    ok(B.mon.maxHp===40,'duo: tier2 HP 40');
+    ok(d.querySelectorAll('.hex').length===49,'49 hex cells');
+    const h0=B.hunters[0];const n=w.__mh.hex.getNeighbors(h0.x,h0.y).find(c=>!E.isOccupied(c.x,c.y));
+    await E.clickCell(n.x,n.y);ok(h0.x===n.x&&h0.move===0,'move spends step');
+    E.undoMove();ok(h0.x===2&&h0.y===6&&h0.move===1,'undo restores position and step');
+    await E.clickCell(n.x,n.y);E.discardForMove(0);ok(B.undo.length===0&&h0.move===1,'discard clears undo stack, +1 step');
+
+    /* ---- 單人 ---- */
+    start({hunters:[H('gs')],carts:3});
+    ok(B.handSize===4&&B.hand.length===4&&B.mon.maxHp===26,'solo: hand 4, tier2 HP 26');
+    ok(d.getElementById('objective-bar').textContent.includes('0/3'),'objective bar shows carts');
+
+    /* ---- 武器技能 ---- */
+    const setupAdj=(weapon,wlv=1)=>{start({hunters:[H(weapon,{wlv})]});noIntent();const m=B.mon,h=B.hunters[0];m.x=3;m.y=3;const a=w.__mh.hex.getNeighbors(3,3)[0];h.x=a.x;h.y=a.y;h.move=1;return {m,h};};
+    let {m,h}=setupAdj('gs');give('skill');let hp=m.hp;await E.playCard(0);ok(hp-m.hp===5&&h.move===0,'GS skill 5 dmg, 1 step');
+    ({m,h}=setupAdj('gs',3));give('basic','skill');hp=m.hp;await E.playCard(0);ok(hp-m.hp===4,'GS Lv3 basic = 2+2');
+    await E.playCard(0);ok(hp-m.hp===4+7,'GS Lv3 skill = 5+2');
+    ({m,h}=setupAdj('sns'));h.move=1;give('skill','skill');await E.playCard(0);ok(h.move===1,'SNS combo refunds first step');await E.playCard(0);ok(h.move===0,'SNS second skill no refund');
+    ({m,h}=setupAdj('hammer'));give('skill','basic');hp=m.hp;await E.playCard(0);ok(m.dizzy&&hp-m.hp===4&&B.danger.length===0,'hammer skill 4 dmg + dizzy, danger cleared');
+    await E.playCard(0);ok(hp-m.hp===4+3,'hammer passive: +1 vs dizzy monster');
+    let mx=m.x,my=m.y;const hh=h.hp;await E.endTurn();ok(m.x===mx&&m.y===my&&h.hp===hh&&!m.dizzy&&m.dizzyImmune===2,'dizzy: monster skips turn, immune 2');
+    h.move=1;give('skill');const a2=w.__mh.hex.getNeighbors(m.x,m.y).find(c=>!E.isOccupied(c.x,c.y));h.x=a2.x;h.y=a2.y;await E.playCard(0);ok(!m.dizzy,'dizzy immunity blocks re-stun');
+    ({m,h}=setupAdj('ls'));h.move=5;give('basic','heavy','basic','basic');await E.playCard(0);await E.playCard(0);await E.playCard(0);await E.playCard(0);ok(h.spirit===3,'LS spirit caps at 3');
+    B.hand.push(CARD('skill'));hp=m.hp;await E.playCard(0);ok(hp-m.hp===5&&h.spirit===0,'LS spirit slash 2+3, resets');
+    // 長槍突進
+    start({hunters:[H('lance')]});noIntent();m=B.mon;h=B.hunters[0];m.x=2;m.y=2;h.x=3;h.y=5;h.move=1;
+    const dir=w.__mh.hex.lineDir(h.x,h.y,m.x,m.y);ok(!!dir,'lance test: monster in straight line');
+    give('skill');hp=m.hp;await E.playCard(0);ok(hp-m.hp===3&&w.__mh.hex.getDistance(h.x,h.y,m.x,m.y)===1,'lance charge lands adjacent, 3 dmg');
+    h.x=6;h.y=6;h.move=1;give('skill');ok(!E.canPlay(CARD('skill'),h).ok,'lance charge blocked off-line/far');
+
+    /* ---- 防禦被動 ---- */
+    ({m,h}=setupAdj('ls'));give('dodge');hp=m.hp;let pr=E.damageHunter(h,3,'t');await sleep(20);d.getElementById('btn-use-dodge').click();await pr;ok(h.hp===h.maxHp&&hp-m.hp===2,'LS dodge counter 2');
+    ({m,h}=setupAdj('lance'));give('shield');hp=m.hp;pr=E.damageHunter(h,4,'t');await sleep(20);d.getElementById('btn-use-shield').click();await pr;ok(h.hp===h.maxHp-2&&hp-m.hp===1,'lance shield -2 and counter 1');
+    ({m,h}=setupAdj('gs'));give('shield');pr=E.damageHunter(h,4,'t');await sleep(20);d.getElementById('btn-use-shield').click();await pr;ok(h.hp===h.maxHp-1,'GS shield blocks 3');
+
+    /* ---- 遠程與道具 ---- */
+    start({hunters:[H('gs')]});noIntent();m=B.mon;h=B.hunters[0];m.x=3;m.y=3;h.x=3;h.y=5;m.fly=1;
+    give('knife','cannon','basic');ok(E.canPlay(CARD('knife'),h).ok&&E.canPlay(CARD('cannon'),h).ok&&!E.canPlay(CARD('basic'),h).ok,'knife/cannon hit flying at range, melee blocked');
+    hp=m.hp;await E.playCard(0);await E.playCard(0);ok(hp-m.hp===5&&B.removed.length===1,'knife 1 + cannon 4, cannon consumed');
+    give('flash');await E.playCard(0);ok(m.fly===0&&m.blinded,'flash knocks down flying monster');
+    h.hp=5;h.st.poison=2;give('cure','dash');await E.playCard(0);ok(h.st.poison===0&&h.hp===6,'cure clears status +1 HP');
+    const mv=h.move;await E.playCard(0);ok(h.move===mv+1&&h.dashBuff===1,'dash +1 now');
+    await E.endTurn();ok(h.move===h.maxMove+1&&h.dashBuff===0,'dash +1 next turn');
+
+    /* ---- 陷阱、捕獲 ---- */
+    start({hunters:[H('gs')],objective:'capture',mons:[{key:'image024'}]});h=B.hunters[0];m=B.mon;
+    B.traps.push({x:m.x,y:m.y+1,type:'trap'});m.hp=Math.floor(m.maxHp*.3);m.intent={name:'x',desc:'',dmg:3,range:'none'};m.px=m.x;m.py=m.y+1;B.danger=[];
+    await E.endTurn();ok(B.over&&B.result.win&&B.result.stats.captured,'capture: trap at <=30% HP captures');
+    start({hunters:[H('gs')],objective:'capture',mons:[{key:'image024'}]});B.mon.hp=1;B.hunters[0].x=B.mon.x;B.hunters[0].y=B.mon.y+1;noIntent();give('basic');await E.playCard(0);ok(B.over&&!B.result.win,'capture quest fails when killed');
+    start({hunters:[H('gs')],mons:[{key:'image024'}]});m=B.mon;B.traps.push({x:m.x,y:m.y+1,type:'shock'});m.intent={name:'x',desc:'',dmg:3,range:'none'};m.px=m.x;m.py=m.y+1;B.danger=[];
+    await E.endTurn();ok(m.dizzy&&m.y===2,'shock trap dizzies monster');
+    mx=m.x;my=m.y;await E.endTurn();ok(m.x===mx&&m.y===my&&!m.dizzy,'shocked monster skips next turn');
+    start({hunters:[H('gs')],mons:[{key:'image009'}]});m=B.mon;m.hp=2;ok(!E.capturable(),'tier3 cannot be captured');
+
+    /* ---- 貓車、回合上限 ---- */
+    start({hunters:[H('gs')],carts:3,turnLimit:5});h=B.hunters[0];noIntent();h.x=0;h.y=0;h.hp=0;E.checkEnd();
+    ok(B.cartsUsed===1&&h.hp===h.maxHp&&h.x===3&&h.y===6&&!B.over,'cart: respawn at start, full HP');
+    h.hp=0;E.checkEnd();h.hp=0;E.checkEnd();ok(B.over&&!B.result.win&&B.cartsUsed===3,'3rd cart fails quest');
+    start({hunters:[H('gs')],turnLimit:2});for(let i=0;i<3&&!B.over;i++){noIntent();await E.endTurn();}
+    ok(B.over&&!B.result.win&&B.result.reason.includes('時間'),'turn limit fails quest');
+    start({hunters:[H('gs'),H('sns')],carts:null});B.hunters[0].hp=0;E.checkEnd();ok(!B.over&&B.stats.downed,'duo no carts: one down continues');
+    B.hunters[1].hp=0;E.checkEnd();ok(B.over&&!B.result.win,'duo: all down = fail');
+
+    /* ---- 採集 ---- */
+    start({hunters:[H('sns')],objective:'gather',gather:{spots:3,need:2},mons:[{key:'image024'}]});h=B.hunters[0];
+    ok(B.gathers.length===3,'3 gather spots placed');
+    for(let i=0;i<2;i++){const g=B.gathers[0];h.x=g.x;h.y=g.y;h.move=1;E.gatherHere();}
+    ok(B.over&&B.result.win&&B.gathered===2,'gather goal completes quest');
+
+    /* ---- 連續狩獵 ---- */
+    start({hunters:[H('gs')],mons:[{key:'image010'},{key:'image001'}]});m=B.mon;h=B.hunters[0];m.x=3;m.y=3;h.x=3;h.y=4;noIntent();m.hp=1;give('basic');await E.playCard(0);
+    ok(!B.over&&B.mon.key==='image001'&&B.killed.length===1&&B.mon.intent,'seq: second monster spawns with intent');
+    B.mon.hp=1;const a3=w.__mh.hex.getNeighbors(B.mon.x,B.mon.y).find(c=>!E.isOccupied(c.x,c.y));h.x=a3.x;h.y=a3.y;noIntent();give('basic');await E.playCard(0);
+    ok(B.over&&B.result.win&&B.result.killed.length===2,'seq: both killed = win');
+
+    /* ---- 炸彈 ---- */
+    start({hunters:[H('gs')]});h=B.hunters[0];noIntent();m=B.mon;m.x=3;m.y=3;h.x=3;h.y=5;h.move=2;B.bombs.push({x:3,y:4});hp=m.hp;
+    await E.clickCell(3,4);ok(hp-m.hp===4&&h.hp===h.maxHp-4&&!B.processing,'bomb ignite: hits monster and adjacent hunter');
+
+    /* ---- 紀錄 ---- */
+    const fresh=S.recordResult('image001_S.jpg',true,{win:true,turns:3,damageTaken:0,lastHit:'weapon',downed:false,captured:false});
+    ok(S.records.totals.wins===1&&fresh.some(a=>a.id==='first_win'),'records + achievements');
+    const code=S.exportCode();S.resetRecords();ok(S.records.totals.wins===0,'reset records');S.importCode(code);ok(S.records.totals.wins===1,'import restores');
+    const old=w.btoa(unescape(encodeURIComponent(JSON.stringify({hunts:{},ach:{},totals:{wins:7,losses:0}}))));S.importCode(old);ok(S.records.totals.wins===7,'legacy backup code accepted');
+  }catch(e){fails++;log('EXCEPTION',e.message,e.stack)}
+  document.getElementById('out').textContent=out.join('\n')+`\nDONE ${fails} FAILED`;
+};
+</script></body></html>

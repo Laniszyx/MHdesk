@@ -3,183 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e1116">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>狩獵戰棋：六角格版</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-:root{
-  --bg:#0e1116; --panel:#171b23; --panel2:#1f2530; --line:#2b3340;
-  --amber:#f2b544; --amber2:#c98a1a; --red:#e5484d; --blue:#5b9cf5; --purple:#a78bfa; --green:#4ade80;
-}
-html,body{height:100%}
-body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:#e6e9ef;height:100dvh;
-  background-image:radial-gradient(ellipse at 50% -10%,#2a2416 0%,transparent 55%);}
-.screen{position:fixed;inset:0;display:flex;flex-direction:column;
-  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
-.clamp3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
-#mini-log{display:none}
-@media (min-height:640px){#mini-log{display:block}}
-.hidden{display:none!important}
-.tap{min-height:44px}
-button{-webkit-tap-highlight-color:transparent}
-.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px}
-.btn-primary{background:linear-gradient(180deg,#f7c35a,#d99a25);color:#1a1200;font-weight:900;border-radius:12px;box-shadow:0 4px 0 #8a5d0c,0 8px 16px rgba(0,0,0,.4)}
-.btn-primary:active{transform:translateY(2px);box-shadow:0 2px 0 #8a5d0c}
-.btn-primary:disabled{background:#3a3f4a;color:#8b93a1;box-shadow:none;transform:none}
-.btn-danger{background:linear-gradient(180deg,#ff6b6b,#c62b2b);color:#fff;font-weight:900;border-radius:12px;box-shadow:0 4px 0 #6d1212}
-.btn-danger:active{transform:translateY(2px);box-shadow:0 2px 0 #6d1212}
-.btn-ghost{background:var(--panel2);border:1px solid var(--line);border-radius:12px;color:#cfd5df}
-
-/* hex grid */
-.hex{position:absolute;clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
-  transform:scale(.94);transition:transform .12s,background .15s;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,#2a3140,#1b212c)}
-.hex.reach{background:linear-gradient(160deg,#2f4f3a,#1f3a2a);box-shadow:inset 0 0 0 2px rgba(74,222,128,.35)}
-.hex.reach::after{content:"";position:absolute;width:18%;height:18%;border-radius:50%;background:rgba(74,222,128,.55)}
-.hex.danger{background:repeating-linear-gradient(45deg,#7a1f24 0 6px,#5b171b 6px 12px)}
-.hex.phantom{background:linear-gradient(160deg,#4a3b7a,#2f2652)}
-.hex.item{box-shadow:inset 0 0 0 2px rgba(242,181,68,.45)}
-.hex:active{transform:scale(1.04);z-index:30}
-.mon-img{width:84%;height:84%;object-fit:contain;border-radius:22%;background:#fff;filter:drop-shadow(0 0 8px rgba(229,72,77,.8));animation:breathe 2.2s ease-in-out infinite alternate;pointer-events:none;z-index:20}
-.mon-img.ghost{opacity:.35;filter:grayscale(.3);animation:none}
-@keyframes breathe{from{transform:scale(1)}to{transform:scale(1.08)}}
-.hunter-token{position:absolute;width:62%;height:62%;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  font-size:clamp(14px,4.5vw,22px);z-index:30;background:#2b3240;border:2px solid #4a5568;transition:all .15s}
-.hunter-token.active{background:radial-gradient(circle at 40% 35%,#ffd97a,#d99a25);border-color:#fff3c4;box-shadow:0 0 14px rgba(242,181,68,.9)}
-.fx{position:absolute;pointer-events:none;z-index:50;display:flex;align-items:center;justify-content:center;font-weight:900;
-  animation:pop .7s ease-out forwards}
-@keyframes pop{0%{transform:scale(.5);opacity:0}25%{transform:scale(1.25);opacity:1}100%{transform:scale(1) translateY(-40%);opacity:0}}
-.shake{animation:shake .45s}
-@keyframes shake{0%,100%{transform:translate(0)}20%{transform:translate(-4px,2px)}40%{transform:translate(4px,-2px)}60%{transform:translate(-3px,-1px)}80%{transform:translate(3px,2px)}}
-
-/* hp bars */
-.bar{background:#0b0e13;border:1px solid #2b3340;border-radius:999px;overflow:hidden;height:10px}
-.bar>div{height:100%;transition:width .35s;border-radius:999px}
-.bar-red>div{background:linear-gradient(90deg,#ff5f5f,#c21f1f)}
-.bar-green>div{background:linear-gradient(90deg,#6ee7a0,#22a55a)}
-
-/* cards */
-.card{flex:1 1 0;min-width:0;max-width:160px;border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:4px;
-  border:1px solid rgba(255,255,255,.08);box-shadow:0 6px 14px rgba(0,0,0,.35);position:relative;overflow:hidden}
-.card::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.06),transparent 40%);pointer-events:none}
-.card.attack{background:linear-gradient(160deg,#5a1f22,#2d1113)}
-.card.skill{background:linear-gradient(160deg,#6b3a11,#2e1a08)}
-.card.defend{background:linear-gradient(160deg,#1f3a5a,#0f1e30)}
-.card.item{background:linear-gradient(160deg,#2f4a24,#14210f)}
-.card .cbtn{width:100%;font-size:11px;font-weight:700;padding:6px 0;border-radius:8px;min-height:30px;white-space:nowrap}
-.card .cbtn.play{background:#f2b544;color:#1a1200}
-.card .cbtn.play:disabled{background:#3a3f4a;color:#8b93a1}
-.card .cbtn.dash{background:rgba(255,255,255,.12);color:#e6e9ef}
-.drawer{position:fixed;left:0;right:0;bottom:0;background:var(--panel);border-top:1px solid var(--line);border-radius:18px 18px 0 0;
-  transform:translateY(100%);transition:transform .25s ease-out;z-index:60;padding-bottom:env(safe-area-inset-bottom)}
-.drawer.open{transform:translateY(0)}
-.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s}
-.backdrop.open{opacity:1;pointer-events:auto}
-.log-box::-webkit-scrollbar{width:4px}.log-box::-webkit-scrollbar-thumb{background:#3a4352;border-radius:3px}
-#toast{position:fixed;left:50%;top:14%;transform:translateX(-50%) translateY(-10px);background:#1b1f27;border:1px solid var(--amber);color:#ffe4a8;
-  padding:8px 14px;border-radius:10px;font-size:12px;font-weight:700;z-index:100;opacity:0;transition:all .2s;pointer-events:none;max-width:88vw;text-align:center}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.mon-pick{aspect-ratio:1;border-radius:12px;background:#fff;padding:4px;border:2px solid transparent;position:relative}
-.mon-pick img{width:100%;height:100%;object-fit:contain}
-.mon-pick.sel{border-color:var(--amber);box-shadow:0 0 0 3px rgba(242,181,68,.35)}
-.mon-pick .tier{position:absolute;right:4px;top:4px;font-size:9px;padding:1px 5px;border-radius:6px;font-weight:900}
-.step-dot{width:8px;height:8px;border-radius:50%;background:#3a4352}.step-dot.on{background:var(--amber)}
-.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:80;background:rgba(0,0,0,.8)}
-</style>
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body class="select-none overflow-hidden">
 
-<!-- ================= SETUP WIZARD ================= -->
-<div id="screen-setup" class="screen">
-  <header class="shrink-0 px-4 pt-3 pb-2 flex items-center justify-between">
-    <div>
-      <div class="text-[10px] tracking-[.3em] text-amber-400 font-bold">HUNTING BOARD</div>
-      <h1 class="text-xl font-black">狩獵戰棋 <span class="text-gray-500 text-sm font-bold">六角格版</span></h1>
-    </div>
-    <div class="flex gap-3 items-center">
-      <button onclick="openRecords()" class="tap px-2 text-xl" aria-label="紀錄">🏆</button>
-      <div class="flex gap-1.5 items-center" id="step-dots">
-        <div class="step-dot on"></div><div class="step-dot"></div><div class="step-dot"></div>
-      </div>
-    </div>
-  </header>
+<!-- 標題、主選單、設定、自由對戰設定、劇情各頁面都畫在這裡 -->
+<div id="screen-view" class="screen"></div>
 
-  <!-- Step 1: hunters -->
-  <section id="step-1" class="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
-    <h2 class="text-sm font-bold text-gray-400">STEP 1 ・ 獵人登記</h2>
-    <div class="panel p-3">
-      <div class="font-black text-red-400 text-base">獵人 1 ・ 大劍</div>
-      <div class="text-[11px] text-gray-400 mb-2">慢速高傷 ・ HP 15 ・ 每回合 1 步 ・ 基礎攻擊 2</div>
-      <div class="flex gap-2">
-        <label class="flex-1 min-w-0"><span class="block text-[10px] text-gray-500 mb-0.5">名字</span>
-          <input id="setup-p0-name" value="大劍" class="w-full bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400"></label>
-        <label class="w-16 shrink-0"><span class="block text-[10px] text-gray-500 mb-0.5">頭像</span>
-          <input id="setup-p0-icon" value="🗡️" class="w-full bg-black/40 border border-gray-700 rounded-lg px-1 py-2 text-lg text-center outline-none"></label>
-      </div>
-    </div>
-    <div class="panel p-3">
-      <div class="font-black text-blue-400 text-base">獵人 2 ・ 片手劍</div>
-      <div class="text-[11px] text-gray-400 mb-2">高速機動 ・ HP 12 ・ 每回合 2 步 ・ 基礎攻擊 1</div>
-      <div class="flex gap-2">
-        <label class="flex-1 min-w-0"><span class="block text-[10px] text-gray-500 mb-0.5">名字</span>
-          <input id="setup-p1-name" value="片手劍" class="w-full bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400"></label>
-        <label class="w-16 shrink-0"><span class="block text-[10px] text-gray-500 mb-0.5">頭像</span>
-          <input id="setup-p1-icon" value="🛡️" class="w-full bg-black/40 border border-gray-700 rounded-lg px-1 py-2 text-lg text-center outline-none"></label>
-      </div>
-    </div>
-    <p class="text-[11px] text-gray-500 px-1">兩位獵人共用一套牌組，每回合輪流操作後按「結束回合」，魔物才會行動。</p>
-  </section>
-
-  <!-- Step 2: monster -->
-  <section id="step-2" class="hidden flex-1 flex flex-col overflow-hidden px-4 pb-4">
-    <h2 class="text-sm font-bold text-gray-400">STEP 2 ・ 選擇狩獵目標</h2>
-    <div class="text-[10px] text-gray-500 mb-2">★ 小型 (HP30)　★★ 大型 (HP40)　★★★ 古龍 (HP55)</div>
-    <div id="mon-preview" class="panel p-3 flex items-center gap-3 mb-3 shrink-0">
-      <div class="w-16 h-16 rounded-xl bg-white p-1 shrink-0"><img id="mon-preview-img" class="w-full h-full object-contain"></div>
-      <div class="flex-1 min-w-0">
-        <div id="mon-preview-name" class="font-black text-lg text-red-300 truncate">—</div>
-        <div id="mon-preview-stats" class="text-[11px] text-gray-400"></div>
-      </div>
-    </div>
-    <div id="mon-grid" class="flex-1 overflow-y-auto grid grid-cols-4 gap-2 pr-1"></div>
-  </section>
-
-  <!-- Step 3: deck -->
-  <section id="step-3" class="hidden flex-1 flex flex-col overflow-hidden px-4 pb-4">
-    <h2 class="text-sm font-bold text-gray-400 mb-2">STEP 3 ・ 構築共用牌組</h2>
-    <div class="panel p-2 mb-2 flex items-center justify-around text-center shrink-0">
-      <div><div class="text-[10px] text-gray-400">總牌數</div><div class="font-black text-lg"><span id="deck-total">0</span><span class="text-gray-500 text-xs">/30</span></div></div>
-      <div><div class="text-[10px] text-gray-400">道具卡</div><div class="font-black text-lg"><span id="deck-items">0</span><span class="text-gray-500 text-xs">/10</span></div></div>
-      <div id="deck-error" class="text-[11px] text-red-400 font-bold w-28"></div>
-    </div>
-    <div id="deck-builder-list" class="flex-1 overflow-y-auto space-y-2 pr-1"></div>
-  </section>
-
-  <footer class="shrink-0 px-4 pb-4 pt-2 flex gap-2">
-    <button id="btn-back" onclick="setupStep(-1)" class="tap btn-ghost px-4 hidden">← 上一步</button>
-    <button id="btn-next" onclick="setupStep(1)" class="tap btn-primary flex-1 py-3 text-base">下一步 ➔</button>
-  </footer>
-</div>
-
-<!-- ================= GAME ================= -->
+<!-- ================= 戰鬥 ================= -->
 <div id="screen-game" class="screen hidden">
-  <header class="shrink-0 px-2 pt-2 pb-1.5 flex items-center gap-2">
-    <div class="w-11 h-11 rounded-xl bg-white p-0.5 shrink-0 shadow-lg"><img id="hud-mon-img" class="w-full h-full object-contain"></div>
+  <header class="shrink-0 px-2 pt-2 pb-1.5 flex items-center gap-1.5">
+    <button data-act="pause" class="tap w-8 text-lg shrink-0" aria-label="暫停">⏸️</button>
+    <div class="w-11 h-11 rounded-xl bg-white p-0.5 shrink-0 shadow-lg"><img id="hud-mon-img" class="w-full h-full object-contain" alt=""></div>
     <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between gap-1">
         <span id="hud-mon-name" class="font-black text-red-300 text-sm truncate">魔物</span>
-        <span id="turn-display" class="text-[10px] font-bold text-gray-400 bg-black/40 px-2 py-0.5 rounded-full">第 1 回合</span>
+        <span id="turn-display" class="shrink-0 text-[10px] font-bold text-gray-400 bg-black/40 px-2 py-0.5 rounded-full">第 1 回合</span>
       </div>
-      <div class="bar bar-red mt-1"><div id="monster-hp-bar" style="width:100%"></div></div>
-      <div class="flex justify-between text-[10px] mt-0.5">
-        <span id="monster-hp-text" class="text-gray-300 font-bold">40/40</span>
+      <div class="bar bar-red mt-1 relative overflow-visible"><div id="monster-hp-bar" style="width:100%"></div><span id="cap-mark" class="cap-mark hidden"></span></div>
+      <div class="flex justify-between text-[10px] mt-0.5 gap-1">
+        <span id="monster-hp-text" class="text-gray-300 font-bold shrink-0">40/40</span>
         <span id="monster-intent-name" class="text-amber-400 font-bold truncate">正在鎖定...</span>
       </div>
     </div>
-    <button onclick="toggleDrawer('help')" class="tap w-9 text-lg" aria-label="說明">❓</button>
-    <button onclick="toggleDrawer('log')" class="tap w-9 text-lg" aria-label="日誌">📜</button>
+    <button data-act="drawer" data-name="help" class="tap w-8 text-lg shrink-0" aria-label="說明">❓</button>
+    <button data-act="drawer" data-name="log" class="tap w-8 text-lg shrink-0" aria-label="日誌">📜</button>
   </header>
   <div id="monster-intent-desc" class="shrink-0 mx-2 mb-1 px-3 py-1 rounded-lg bg-red-950/50 border border-red-900/60 text-[11px] text-red-100 truncate"></div>
+  <div id="objective-bar" class="hidden shrink-0 mx-2 mb-1 px-3 py-1 rounded-lg bg-amber-950/40 border border-amber-900/50 text-[11px] text-amber-100 flex items-center justify-between gap-2"></div>
 
   <main class="flex-1 min-h-0 flex items-center justify-center px-1.5 relative">
     <div id="grid-wrap" class="relative" style="aspect-ratio:1.18;width:100%;max-width:560px;max-height:100%;">
@@ -187,663 +43,61 @@ button{-webkit-tap-highlight-color:transparent}
     </div>
   </main>
 
-  <div id="placement-hint" class="hidden shrink-0 mx-2 mb-1 text-center text-[11px] font-bold text-amber-300 animate-pulse">👉 點擊相鄰的空格放置道具</div>
-  <div id="mini-log" class="shrink-0 mx-2 mb-1 px-3 py-1.5 rounded-lg bg-black/30 border border-gray-800 text-[11px] text-gray-400 leading-snug" onclick="toggleDrawer('log')"></div>
+  <div id="placement-hint" class="hidden shrink-0 mx-2 mb-1 text-center text-[11px] font-bold text-amber-300 animate-pulse">👉 點擊相鄰的空格放置道具 <button data-act="cancel-place" class="underline text-gray-300 ml-2">取消</button></div>
+  <div id="mini-log" data-act="drawer" data-name="log" class="shrink-0 mx-2 mb-1 px-3 py-1.5 rounded-lg bg-black/30 border border-gray-800 text-[11px] text-gray-400 leading-snug"></div>
 
-  <footer class="shrink-0 bg-[#12161d] border-t border-gray-800 px-2 pt-2 pb-2 space-y-2 shadow-[0_-10px_24px_rgba(0,0,0,.45)]">
+  <footer class="shrink-0 bg-[#12161d] border-t border-gray-800 px-2 pt-2 pb-2 space-y-1.5 shadow-[0_-10px_24px_rgba(0,0,0,.45)]">
     <div class="flex gap-2 items-stretch">
-      <div id="player-0-card" onclick="selectPlayer(0)" class="tap flex-1 panel px-2 py-1.5 flex items-center gap-2 border-2">
-        <span id="p0-icon" class="text-xl">🗡️</span>
-        <div class="flex-1 min-w-0">
-          <div class="flex justify-between text-[11px]"><b id="p0-name" class="text-red-300 truncate">大劍</b><span id="p0-hp" class="text-gray-300">15/15</span></div>
-          <div class="bar bar-green mt-0.5" style="height:6px"><div id="p0-hpbar" style="width:100%"></div></div>
-          <div class="text-[10px] text-gray-400 mt-0.5">步數 <span id="p0-move" class="text-white font-black">1</span><span class="text-gray-600">/<span id="p0-maxMove">1</span></span></div>
-        </div>
-      </div>
-      <div id="player-1-card" onclick="selectPlayer(1)" class="tap flex-1 panel px-2 py-1.5 flex items-center gap-2 border-2">
-        <span id="p1-icon" class="text-xl">🛡️</span>
-        <div class="flex-1 min-w-0">
-          <div class="flex justify-between text-[11px]"><b id="p1-name" class="text-blue-300 truncate">片手劍</b><span id="p1-hp" class="text-gray-300">12/12</span></div>
-          <div class="bar bar-green mt-0.5" style="height:6px"><div id="p1-hpbar" style="width:100%"></div></div>
-          <div class="text-[10px] text-gray-400 mt-0.5">步數 <span id="p1-move" class="text-white font-black">2</span><span class="text-gray-600">/<span id="p1-maxMove">2</span></span></div>
-        </div>
-      </div>
-      <button onclick="endTurn()" class="tap btn-danger px-3 text-xs leading-tight">結束<br>回合</button>
+      <div id="hunter-cards" class="flex-1 min-w-0 flex gap-2"></div>
+      <button data-act="end-turn" id="btn-end" class="tap btn-danger px-3 text-xs leading-tight shrink-0">結束<br>回合</button>
     </div>
-    <div class="flex items-center justify-between px-1">
-      <span class="text-[10px] text-gray-500">手牌 <span id="hand-count">0</span>/3 ・ 牌庫 <span id="deck-count">0</span> ・ 棄牌 <span id="discard-count">0</span> ・ 消耗 <span id="removed-count">0</span></span>
-      <button onclick="toggleDrawer('help')" class="text-[10px] text-amber-400 font-bold">❓ 怎麼玩</button>
+    <div class="flex items-center justify-between px-1 gap-2">
+      <span class="text-[10px] text-gray-500 truncate">手牌 <span id="hand-count">0</span>/<span id="hand-max">3</span> ・ 牌庫 <span id="deck-count">0</span> ・ 棄牌 <span id="discard-count">0</span> ・ 消耗 <span id="removed-count">0</span></span>
+      <div class="flex gap-1.5 shrink-0">
+        <button data-act="gather" id="btn-gather" class="hidden text-[11px] font-bold px-2 py-1 rounded-lg bg-lime-800 text-lime-100">🌿 採集</button>
+        <button data-act="undo" id="btn-undo" class="hidden text-[11px] font-bold px-2 py-1 rounded-lg bg-gray-700 text-gray-100">↶ 撤回</button>
+      </div>
     </div>
     <div id="hand-container" class="flex gap-2 justify-center pb-1" style="min-height:118px"></div>
   </footer>
 </div>
 
-<!-- drawer: log -->
-<!-- drawer: records -->
-<div id="backdrop-records" class="backdrop" style="z-index:95" onclick="toggleDrawer('records')"></div>
-<div id="drawer-records" class="drawer p-4 flex flex-col" style="max-height:85dvh;z-index:96">
-  <div class="flex justify-between items-center mb-2"><b class="text-sm">🏆 狩獵紀錄</b><button onclick="toggleDrawer('records')" class="tap px-3 text-gray-400">✕</button></div>
-  <div id="records-body" class="overflow-y-auto text-xs"></div>
+<!-- 抽屜：說明 -->
+<div id="backdrop-help" class="backdrop" data-act="drawer" data-name="help"></div>
+<div id="drawer-help" class="drawer p-4 flex flex-col" style="max-height:82dvh">
+  <div class="flex justify-between items-center mb-2"><b class="text-sm">❓ 怎麼玩</b><button data-act="drawer" data-name="help" class="tap px-3 text-gray-400">✕</button></div>
+  <div id="help-body" class="overflow-y-auto text-xs text-gray-200 space-y-3 leading-relaxed"></div>
 </div>
-<!-- drawer: help -->
-<div id="backdrop-help" class="backdrop" onclick="toggleDrawer('help')"></div>
-<div id="drawer-help" class="drawer p-4 flex flex-col" style="max-height:80dvh">
-  <div class="flex justify-between items-center mb-2"><b class="text-sm">❓ 怎麼玩</b><button onclick="toggleDrawer('help')" class="tap px-3 text-gray-400">✕</button></div>
-  <div class="overflow-y-auto text-xs text-gray-200 space-y-3 leading-relaxed">
-    <div class="panel p-3">
-      <b class="text-amber-300">每回合流程</b>
-      <ol class="list-decimal pl-4 mt-1 space-y-1">
-        <li>點下方獵人卡切換操作對象（或直接點地圖上的獵人）。</li>
-        <li>點<span class="text-green-300">綠色格</span>移動，每格耗 1 步。</li>
-        <li>走到魔物<b>相鄰格</b>後打出攻擊牌。手牌打不出去時按鈕會直接寫原因（需相鄰／需 1 步）。</li>
-        <li>兩位獵人都動完，按紅色「結束回合」，魔物才會行動。</li>
-      </ol>
-    </div>
-    <div class="panel p-3">
-      <b class="text-amber-300">手牌上的兩顆按鈕</b>
-      <div class="mt-1"><b class="text-yellow-300">打出</b>：使用這張牌的效果。</div>
-      <div class="mt-1"><b class="text-gray-100">棄牌 +1步</b>：<u>不使用效果</u>，把牌丟進棄牌堆，換目前獵人 +1 步移動力。適合手上抽到暫時用不到的牌（例如離魔物太遠的攻擊牌）。棄掉的牌之後會洗回牌庫，不會消失。</div>
-      <div class="mt-1"><b class="text-blue-300">被動</b>：翻滾／舉盾不能主動打，只會在你要受傷時自動跳出視窗問你要不要用。</div>
-    </div>
-    <div class="panel p-3">
-      <b class="text-amber-300">看懂地圖</b>
-      <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#6b3a8a"></span> 半透明魔物 = 牠下回合會走到的位置。</div>
-      <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#7a1f24"></span> 紅色斜紋 = 牠這次攻擊會打到的格子，結束回合前站在裡面就會受傷。</div>
-      <div class="mt-1">魔物撞到站在牠前進路線上的獵人會把人推退 1 格，被推出地圖邊緣直接倒下。</div>
-    </div>
-    <div class="panel p-3">
-      <b class="text-amber-300">魔物招式與狀態</b>
-      <div class="mt-1">每隻魔物都有 2–3 招獨家招式（選龍時會列出），加上共通的咬擊／踐踏／尾掃／咆哮。上方預警條會寫出招式名稱、傷害與附加效果。</div>
-      <div class="mt-1">🐌 減速：下回合 -1 步　⚡ 麻痺：下回合不能移動　☠️🔥🩸 中毒／灼燒／流血：接下來 2 回合各 -1 HP（無法防禦）　💨 擊退：被推離 1 格</div>
-      <div class="mt-1">🕊️ 飛行：魔物下回合近戰打不到，等牠降落　🛡️ 硬化：下回合對牠的傷害 -2　🔥 狂暴：傷害 +1（血量低於 40% 也會狂暴）</div>
-      <div class="mt-1">「鎖定型」招式（俯衝、潛地突刺等）攻擊的是預警時獵人站的格子——走開就能躲。翻滾迴避成功時附加效果也一併躲掉。</div>
-    </div>
-    <div class="panel p-3">
-      <b class="text-amber-300">道具小抄</b>
-      <div class="mt-1">🕳️ 陷阱 / 💣 爆彈桶：打出後點<b>相鄰空格</b>放置。爆彈桶可再花 1 步點它遠程引爆，或等魔物攻擊掃到它。</div>
-      <div class="mt-1">⚡ 閃光彈：取消魔物這回合的攻擊，但牠仍會移動。</div>
-      <div class="mt-1">🔥 魔物血量低於 40% 會狂暴，傷害 +1。</div>
-    </div>
-  </div>
-</div>
-<div id="backdrop-log" class="backdrop" onclick="toggleDrawer('log')"></div>
+<!-- 抽屜：日誌 -->
+<div id="backdrop-log" class="backdrop" data-act="drawer" data-name="log"></div>
 <div id="drawer-log" class="drawer p-3 flex flex-col" style="height:55dvh">
-  <div class="flex justify-between items-center mb-2"><b class="text-sm">📜 戰鬥日誌</b><button onclick="toggleDrawer('log')" class="tap px-3 text-gray-400">✕</button></div>
+  <div class="flex justify-between items-center mb-2"><b class="text-sm">📜 戰鬥日誌</b><button data-act="drawer" data-name="log" class="tap px-3 text-gray-400">✕</button></div>
   <div id="battle-log" class="flex-1 bg-black/40 rounded-xl p-2 overflow-y-auto text-xs space-y-1.5 log-box"></div>
 </div>
 
-<!-- defense modal -->
-<div id="defense-modal" class="modal hidden">
+<!-- 防禦選擇 -->
+<div id="defense-modal" class="modal hidden" style="z-index:92">
   <div class="panel w-full max-w-sm p-5 text-center border-red-500/60">
     <div class="text-3xl mb-1">⚠️</div>
     <h2 class="text-lg font-black text-red-400 mb-1">危機來襲！</h2>
     <p class="text-sm text-gray-300 mb-4"><b id="def-target">某人</b> 即將受到 <b id="def-dmg" class="text-red-400 text-xl">X</b> 點傷害<br><span class="text-[11px] text-gray-500">來源：<span id="def-source"></span></span></p>
     <div class="flex flex-col gap-2">
       <button id="btn-use-dodge" class="tap hidden rounded-xl py-3 font-bold bg-blue-600 text-white">💨 翻滾迴避 ・ 完全閃躲</button>
-      <button id="btn-use-shield" class="tap hidden rounded-xl py-3 font-bold bg-green-700 text-white">🛡️ 舉盾掩護 ・ 減免 2 點</button>
+      <button id="btn-use-shield" class="tap hidden rounded-xl py-3 font-bold bg-green-700 text-white">🛡️ 舉盾掩護</button>
       <button id="btn-take-dmg" class="tap rounded-xl py-3 font-bold bg-red-950 border border-red-800 text-red-200">🩸 硬扛</button>
     </div>
   </div>
 </div>
 
-<!-- game over -->
-<div id="game-over" class="modal hidden" style="background:rgba(0,0,0,.92)">
-  <div class="text-center">
-    <div class="w-32 h-32 mx-auto rounded-2xl bg-white p-2 mb-4 shadow-2xl"><img id="go-img" class="w-full h-full object-contain"></div>
-    <h2 id="game-over-title" class="text-4xl font-black mb-2"></h2>
-    <p id="game-over-sub" class="text-gray-400 text-sm mb-3"></p>
-    <div id="go-ach" class="space-y-1.5 mb-4 max-w-xs mx-auto"></div>
-    <div class="flex gap-2 justify-center">
-      <button onclick="openRecords()" class="tap btn-ghost px-5 py-4 text-base">🏆 紀錄</button>
-      <button onclick="location.reload()" class="tap btn-primary px-8 py-4 text-lg">再狩獵一次</button>
-    </div>
-  </div>
-</div>
+<!-- 通用對話框（確認、暫停、結算、魔物資料） -->
+<div id="modal" class="modal hidden" style="z-index:90"><div id="modal-box" class="panel w-full max-w-sm p-5 max-h-[88dvh] overflow-y-auto"></div></div>
 
+<div id="banner"><div class="b-main"></div><div class="b-sub"></div></div>
+<div id="announce"></div>
+<div id="tut-ring" class="hidden"></div>
+<div id="tut-box" class="hidden"></div>
 <div id="toast"></div>
 
-<script>
-/* ===================== DATA ===================== */
-const MONSTERS = [
-  {f:'image001_S.jpg',n:'火龍',t:2},{f:'image002_S.jpg',n:'蒼火龍',t:2},{f:'image003_S.jpg',n:'雌火龍',t:2},{f:'image004_S.jpg',n:'櫻火龍',t:2},
-  {f:'image005_S.jpg',n:'角龍',t:2},{f:'image006_S.jpg',n:'黑角龍',t:2},{f:'image007_S.jpg',n:'浮空龍',t:1},{f:'image008_S.jpg',n:'風漂龍',t:2},
-  {f:'image009_S.jpg',n:'滅盡龍',t:3},{f:'image010_S.jpg',n:'搔鳥',t:1},{f:'image011_S.jpg',n:'土砂龍',t:1},{f:'image012_S.jpg',n:'骨鎚龍',t:2},
-  {f:'image013_S.jpg',n:'爆鎚龍',t:2},{f:'image014_S.jpg',n:'恐暴龍',t:3},{f:'image015_S.jpg',n:'大兇顎龍',t:1},{f:'image016_S.jpg',n:'飛雷龍',t:1},
-  {f:'image017_S.jpg',n:'岩賊龍',t:1},{f:'image018_S.jpg',n:'凍魚龍',t:1},{f:'image019_S.jpg',n:'慘爪龍',t:2},{f:'image020_S.jpg',n:'泥魚龍',t:1},
-  {f:'image021_S.jpg',n:'熔岩龍',t:2},{f:'image022_S.jpg',n:'毒妖鳥',t:1},{f:'image023_S.jpg',n:'眩鳥',t:1},{f:'image024_S.jpg',n:'大兇豺龍',t:1},
-  {f:'image025_S.jpg',n:'爆鱗龍',t:2},{f:'image026_S.jpg',n:'屍套龍',t:3},{f:'image027_S.jpg',n:'鋼龍',t:3},{f:'image028_S.jpg',n:'炎王龍',t:3},
-  {f:'image029_S.jpg',n:'炎妃龍',t:3},{f:'image030_S.jpg',n:'熔山龍',t:3},{f:'image031_S.jpg',n:'麒麟',t:3},{f:'image032_S.jpg',n:'冥燈龍',t:3},
-  {f:'image033_S.jpg',n:'蠻顎龍',t:2},{f:'image034_S.jpg',n:'絢輝龍',t:3},
-];
-const TIER = {1:{hp:30,dmg:-1,label:'★',cls:'bg-green-600 text-white'},2:{hp:40,dmg:0,label:'★★',cls:'bg-amber-500 text-black'},3:{hp:55,dmg:1,label:'★★★',cls:'bg-purple-600 text-white'}};
-/* 招式格式：range = line(直線len格) / radius(周圍len圈) / ring(距離2一圈) / arc(正前方3格) / target(鎖定獵人所在格+周圍len圈)
-   / random(附近隨機n格) / all(全圖) / none。move = 逼近格數(預設1，0原地，2衝刺)。self = 自身效果，hit = 命中效果 */
-const COMMON = {
-  bite:{name:'咬擊',range:'line',len:1,dmg:3,desc:'逼近後咬向正前方 1 格'},
-  stomp:{name:'踐踏',range:'radius',len:1,dmg:3,desc:'逼近後踩踏周圍一圈'},
-  tail:{name:'尾掃',range:'arc',dmg:3,desc:'逼近後橫掃正前方 3 格'},
-  roar:{name:'咆哮',range:'radius',len:2,dmg:0,hit:['slow'],desc:'震懾周圍 2 圈，命中者下回合 -1 步'},
-};
-const MOVESETS = {
-  image001:{s:[{name:'毒爪俯衝',range:'target',len:0,dmg:4,move:2,hit:['poison'],desc:'從空中俯衝鎖定獵人所在格，爪擊帶毒'},
-    {name:'火球',range:'line',len:3,dmg:4,hit:['burn'],desc:'直線噴出火球 3 格，命中者灼燒'},
-    {name:'翱翔',range:'none',move:0,self:['fly'],desc:'飛上天空，下回合近戰無法命中'}],c:['bite','tail']},
-  image002:{s:[{name:'急速俯衝',range:'target',len:0,dmg:5,move:2,hit:['push'],desc:'高速俯衝鎖定格，命中者被撞退 1 格'},
-    {name:'連續火球',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'空中連射火球，隨機落在附近 3 格'},
-    {name:'滯空飛翔',range:'none',move:0,self:['fly'],desc:'飛上天空，下回合近戰無法命中'}],c:['bite','tail']},
-  image003:{s:[{name:'毒尾空翻',range:'radius',len:1,dmg:3,hit:['poison'],desc:'後空翻毒尾掃過周圍一圈，命中者中毒'},
-    {name:'火焰吐息',range:'line',len:2,dmg:3,hit:['burn'],desc:'向前噴火 2 格'}],c:['bite','stomp']},
-  image004:{s:[{name:'連續毒尾空翻',range:'radius',len:1,dmg:4,hit:['poison'],desc:'連續兩次空翻，周圍一圈重擊帶毒'},
-    {name:'烈焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'向前噴火 3 格'}],c:['bite','tail']},
-  image005:{s:[{name:'潛地突刺',range:'target',len:1,dmg:5,desc:'潛入地底從鎖定獵人腳下鑽出，波及周圍一圈'},
-    {name:'雙角衝撞',range:'line',len:3,dmg:4,move:2,hit:['push'],desc:'衝刺 2 格後雙角直衝 3 格，命中者被撞退'},
-    {name:'尾錘',range:'arc',dmg:3,hit:['stun'],desc:'尾錘重擊前方 3 格，命中者暈眩'}],c:['bite','roar']},
-  image006:{s:[{name:'狂怒衝撞',range:'line',len:3,dmg:5,move:2,hit:['push'],desc:'衝刺 2 格後全力衝撞 3 格'},
-    {name:'潛地追蹤',range:'target',len:1,dmg:5,hit:['stun'],desc:'從鎖定獵人腳下鑽出，波及周圍一圈並暈眩'}],c:['bite','roar']},
-  image007:{s:[{name:'膨脹壓擊',range:'radius',len:1,dmg:3,hit:['stun'],desc:'膨脹頸囊後從空中壓下，周圍一圈暈眩'},
-    {name:'滑翔翼擊',range:'line',len:2,dmg:3,hit:['push'],desc:'低空滑翔用翅膀撞飛前方 2 格'},
-    {name:'膨脹飛行',range:'none',move:0,self:['fly'],desc:'鼓起頸囊浮空，下回合近戰無法命中'}],c:['bite','tail']},
-  image008:{s:[{name:'冰結風壓',range:'target',len:1,dmg:3,hit:['slow'],desc:'向鎖定獵人放出冰風，周圍一圈冰凍減速'},
-    {name:'滑空爪擊',range:'line',len:3,dmg:4,move:2,desc:'高速滑翔爪擊前方 3 格'},
-    {name:'凍氣吐息',range:'arc',dmg:3,hit:['slow'],desc:'噴出凍氣覆蓋前方 3 格'}],c:['bite','tail']},
-  image009:{s:[{name:'俯衝突刺',range:'target',len:1,dmg:6,move:2,hit:['push'],desc:'全身棘刺俯衝鎖定格，周圍一圈重創並撞退'},
-    {name:'棘刺硬化',range:'radius',len:1,dmg:2,move:0,self:['armor'],desc:'原地硬化棘刺，周圍一圈受傷，自身下回合受傷 -2'},
-    {name:'棘刺投射',range:'ring',dmg:3,desc:'甩出棘刺，打擊距離 2 的整圈'}],c:['bite','stomp']},
-  image010:{s:[{name:'投石',range:'line',len:3,dmg:3,desc:'抱起石頭砸向前方 3 格'},
-    {name:'巨石壓擊',range:'radius',len:1,dmg:4,hit:['stun'],desc:'高舉巨石砸下，周圍一圈暈眩'}],c:['bite','tail']},
-  image011:{s:[{name:'泥漿甩尾',range:'radius',len:1,dmg:2,hit:['slow'],desc:'甩落泥漿，周圍一圈黏住減速'},
-    {name:'頭錘衝撞',range:'line',len:2,dmg:4,move:2,hit:['push'],desc:'低頭衝刺 2 格，頭冠撞飛前方 2 格'},
-    {name:'泥漿投擲',range:'target',len:1,dmg:2,hit:['slow'],desc:'向鎖定獵人甩出泥團，周圍一圈減速'}],c:['bite','stomp']},
-  image012:{s:[{name:'滾動輾壓',range:'line',len:4,dmg:4,move:2,hit:['push'],desc:'蜷成骨球高速滾動輾過前方 4 格'},
-    {name:'骨棘四散',range:'ring',dmg:2,desc:'甩落骨頭碎片，打擊距離 2 的整圈'},
-    {name:'睡眠瓦斯',range:'radius',len:1,dmg:0,hit:['stun'],desc:'噴出催眠瓦斯，周圍一圈昏睡（下回合無法移動）'}],c:['bite','stomp']},
-  image013:{s:[{name:'滾動輾壓',range:'line',len:4,dmg:4,move:2,hit:['push'],desc:'蜷成岩球高速滾動輾過前方 4 格'},
-    {name:'下顎重擊',range:'arc',dmg:5,hit:['stun'],desc:'巨大下顎砸向前方 3 格，命中者暈眩'},
-    {name:'爆炸岩散布',range:'none',move:0,self:['bombs:2'],desc:'從背甲抖落 2 顆爆炸岩（等同爆彈桶）在附近'}],c:['bite','stomp']},
-  image014:{s:[{name:'龍屬性吐息',range:'line',len:3,dmg:5,desc:'噴出黑色龍能量，直線 3 格'},
-    {name:'叼起投擲',range:'arc',dmg:5,hit:['push'],desc:'叼住獵人猛甩，前方 3 格重創並撞退'},
-    {name:'狂暴化',range:'radius',len:1,dmg:2,move:0,self:['enrage'],desc:'肌肉暴脹進入永久狂暴，周圍一圈受傷'}],c:['bite','stomp']},
-  image015:{s:[{name:'吞食膨脹',range:'none',move:0,self:['heal:4'],desc:'吞下獵物回復 4 HP，身體膨脹'},
-    {name:'膨脹壓擊',range:'radius',len:1,dmg:3,desc:'膨脹的身體撲倒，壓扁周圍一圈'}],c:['bite','tail']},
-  image016:{s:[{name:'帶電飛撲',range:'line',len:2,dmg:4,hit:['stun'],desc:'全身帶電撲向前方 2 格，命中者麻痺'},
-    {name:'電氣尾擊',range:'arc',dmg:3,hit:['stun'],desc:'帶電尾巴掃過前方 3 格，命中者麻痺'},
-    {name:'樹上滑翔',range:'target',len:0,dmg:3,move:2,desc:'爬上高處滑翔撲向鎖定獵人所在格'}],c:['bite','tail']},
-  image017:{s:[{name:'岩漿吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'吐出熔岩流覆蓋前方 3 格'},
-    {name:'爆炸岩噴出',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'咀嚼岩石後噴出，隨機炸裂附近 3 格'}],c:['bite','stomp']},
-  image018:{s:[{name:'雪中突襲',range:'target',len:1,dmg:4,hit:['slow'],desc:'潛入雪中從鎖定獵人腳下衝出，周圍一圈冰凍'},
-    {name:'冰雪噴射',range:'line',len:3,dmg:3,hit:['slow'],desc:'噴出雪塊直線 3 格'}],c:['bite','tail']},
-  image019:{s:[{name:'連續飛撲爪擊',range:'line',len:2,dmg:4,move:2,hit:['bleed'],desc:'疾走後連續撲擊前方 2 格，命中者裂傷流血'},
-    {name:'撕咬甩動',range:'target',len:0,dmg:5,hit:['bleed'],desc:'鎖定獵人所在格猛咬撕扯，造成流血'}],c:['bite','tail']},
-  image020:{s:[{name:'泥水噴射',range:'line',len:3,dmg:3,hit:['slow'],desc:'噴出泥水直線 3 格，命中者減速'},
-    {name:'潛泥突襲',range:'target',len:1,dmg:4,desc:'潛入泥沼從鎖定獵人腳下竄出，波及周圍一圈'}],c:['bite','tail']},
-  image021:{s:[{name:'熔岩火球',range:'line',len:3,dmg:4,hit:['burn'],desc:'吐出熔岩火球直線 3 格'},
-    {name:'潛岩衝撞',range:'target',len:1,dmg:4,hit:['burn'],desc:'潛入岩漿從鎖定獵人腳下衝出，周圍一圈灼燒'}],c:['bite','tail']},
-  image022:{s:[{name:'毒液噴射',range:'line',len:3,dmg:2,hit:['poison'],desc:'噴出毒液直線 3 格，命中者中毒'},
-    {name:'毒霧擴散',range:'radius',len:2,dmg:1,hit:['poison'],desc:'放出毒霧籠罩周圍 2 圈'},
-    {name:'毒液尾擊',range:'arc',dmg:2,hit:['poison'],desc:'尾巴甩出毒囊掃過前方 3 格'}],c:['bite','stomp']},
-  image023:{s:[{name:'閃光眩暈',range:'radius',len:2,dmg:0,move:0,hit:['stun'],desc:'展開頭部發出強光，周圍 2 圈全部暈眩'},
-    {name:'跳躍撲擊',range:'line',len:2,dmg:3,move:2,desc:'跳躍撲向前方 2 格'}],c:['bite','tail']},
-  image024:{s:[{name:'麻痺牙',range:'line',len:1,dmg:3,hit:['stun'],desc:'帶麻痺毒的獠牙咬向前方，命中者麻痺'},
-    {name:'群狼包抄',range:'random',len:3,n:3,dmg:2,desc:'呼喚兇豺龍群，隨機襲擊附近 3 格'}],c:['bite','tail']},
-  image025:{s:[{name:'爆鱗散布',range:'none',move:0,self:['bombs:3'],desc:'飛過時抖落 3 片爆鱗（等同爆彈桶）在附近'},
-    {name:'爆炸俯衝',range:'target',len:1,dmg:5,move:2,hit:['burn'],desc:'俯衝鎖定格引爆全身爆鱗，周圍一圈灼燒'},
-    {name:'爆鱗引爆',range:'none',move:0,self:['detonate'],desc:'引爆地圖上所有爆彈桶／爆鱗（自身免疫）'}],c:['bite','stomp']},
-  image026:{s:[{name:'瘴氣吐息',range:'line',len:3,dmg:3,hit:['poison'],desc:'噴出屍套瘴氣直線 3 格，命中者中毒'},
-    {name:'瘴氣擴散',range:'radius',len:2,dmg:1,hit:['poison'],desc:'瘴氣籠罩周圍 2 圈'},
-    {name:'屍氣吸收',range:'radius',len:1,dmg:2,move:0,self:['heal:3'],desc:'吸收周圍瘴氣回復 3 HP，周圍一圈受傷'}],c:['bite','tail']},
-  image027:{s:[{name:'龍捲風',range:'random',len:3,n:3,dmg:3,hit:['push'],desc:'召喚龍捲風隨機席捲附近 3 格，命中者被吹退'},
-    {name:'風壓咆哮',range:'radius',len:2,dmg:0,move:0,hit:['slow'],desc:'風之屏障爆發，周圍 2 圈減速'},
-    {name:'暴風吐息',range:'line',len:3,dmg:4,hit:['push'],desc:'噴出暴風直線 3 格，命中者被吹退'}],c:['bite','tail']},
-  image028:{s:[{name:'超新星',range:'radius',len:2,dmg:6,move:0,hit:['burn'],desc:'龍炎爆發！周圍 2 圈全部重創灼燒'},
-    {name:'火焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出烈焰直線 3 格'},
-    {name:'粉塵爆炸',range:'random',len:3,n:3,dmg:3,hit:['burn'],desc:'散布爆炸粉塵，隨機引爆附近 3 格'}],c:['bite','stomp']},
-  image029:{s:[{name:'青炎超新星',range:'radius',len:2,dmg:5,move:0,hit:['burn'],desc:'青色龍炎爆發，周圍 2 圈灼燒'},
-    {name:'熱風領域',range:'all',dmg:1,move:0,hit:['burn'],desc:'全場捲起高溫熱風，所有獵人受 1 傷並灼燒'},
-    {name:'青炎吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出青炎直線 3 格'}],c:['bite','tail']},
-  image030:{s:[{name:'岩漿噴發',range:'random',len:3,n:4,dmg:4,move:0,hit:['burn'],desc:'背部火山噴發，隨機 4 格落下熔岩'},
-    {name:'地面震盪',range:'radius',len:2,dmg:3,move:0,hit:['stun'],desc:'巨體踏地，周圍 2 圈震盪暈眩'},
-    {name:'熔岩流',range:'line',len:4,dmg:4,move:0,hit:['burn'],desc:'熔岩沿直線流出 4 格'}],c:['stomp','roar']},
-  image031:{s:[{name:'落雷',range:'random',len:3,n:4,dmg:4,hit:['stun'],desc:'召喚雷擊隨機落在附近 4 格，命中者麻痺'},
-    {name:'雷擊角衝',range:'line',len:2,dmg:3,move:2,hit:['stun'],desc:'帶電角衝刺 2 格，前方 2 格麻痺'},
-    {name:'雷光鎧甲',range:'radius',len:1,dmg:2,move:0,self:['armor'],desc:'雷光纏身，周圍一圈受傷，自身下回合受傷 -2'}],c:['bite','stomp']},
-  image032:{s:[{name:'能量光束',range:'line',len:5,dmg:5,hit:['burn'],desc:'放出龍脈能量光束，貫穿直線 5 格'},
-    {name:'爆裂脈衝',range:'radius',len:2,dmg:4,move:0,desc:'龍脈能量從地面爆發，周圍 2 圈受創'},
-    {name:'能量凝聚',range:'none',move:0,self:['armor','heal:3'],desc:'吸收龍脈能量回復 3 HP，下回合受傷 -2'}],c:['bite','tail']},
-  image033:{s:[{name:'火焰吐息',range:'line',len:3,dmg:4,hit:['burn'],desc:'噴出烈焰直線 3 格'},
-    {name:'突進咬噬',range:'line',len:1,dmg:4,move:2,desc:'衝刺 2 格後猛咬正前方'},
-    {name:'鼻翼展開',range:'radius',len:1,dmg:2,move:0,self:['enrage'],desc:'鼻翼張開進入永久狂暴，周圍一圈受傷'}],c:['bite','stomp']},
-  image034:{s:[{name:'黃金吐息',range:'line',len:4,dmg:5,hit:['burn'],desc:'噴出黃金熔流直線 4 格'},
-    {name:'黃金角撞擊',range:'arc',dmg:5,hit:['push'],desc:'巨角橫掃前方 3 格，命中者撞退'},
-    {name:'黃金粉塵',range:'radius',len:2,dmg:2,hit:['burn'],desc:'抖落熾熱金粉，周圍 2 圈灼燒'}],c:['stomp','roar']},
-};
-const FX = {
-  slow:{icon:'🐌',label:'減速',turns:1,desc:'下回合 -1 步'},stun:{icon:'⚡',label:'麻痺',turns:1,desc:'下回合無法移動'},
-  poison:{icon:'☠️',label:'中毒',turns:2,desc:'接下來 2 回合各 -1 HP'},burn:{icon:'🔥',label:'灼燒',turns:2,desc:'接下來 2 回合各 -1 HP'},
-  bleed:{icon:'🩸',label:'流血',turns:2,desc:'接下來 2 回合各 -1 HP'},push:{icon:'💨',label:'擊退',turns:0,desc:'被推離魔物 1 格'},
-  fly:{icon:'🕊️',label:'飛行',desc:'下回合近戰打不到'},armor:{icon:'🛡️',label:'硬化',desc:'下回合受傷 -2'},enrage:{icon:'🔥',label:'狂暴',desc:'永久傷害 +1'},
-};
-const movesetOf=file=>MOVESETS[file.slice(0,8)];
-const monsterMovePool=()=>{const ms=movesetOf(monster.img);return ms.s.map(a=>({...a,sig:true,w:1.5})).concat(ms.c.map(k=>({...COMMON[k],w:1})));};
-const fxSummary=a=>{const parts=[];if(a.self)parts.push('自身：'+a.self.map(s=>{const k=s.split(':')[0];return k==='bombs'?'散布爆彈':k==='detonate'?'引爆全場':k==='heal'?'回復'+s.split(':')[1]:FX[k].label;}).join('、'));
-  if(a.hit&&a.hit.length)parts.push('命中：'+a.hit.map(h=>FX[h].icon+FX[h].label).join('、'));return parts.join('｜');};
-const CARDS_DB = {
-  basic:{id:'basic',type:'attack',isItem:false,name:'基礎斬擊',glyph:'⚔️',desc:'相鄰時造成 [武器基礎] 傷害'},
-  heavy:{id:'heavy',type:'attack',isItem:false,name:'重擊',glyph:'💢',desc:'相鄰時造成 [武器基礎+1] 傷害'},
-  skill:{id:'skill',type:'skill',isItem:false,name:'職業技能',glyph:'✨',desc:'耗 1 步。大劍 5 傷／片手 2 傷，每回合首次可回 1 步'},
-  dodge:{id:'dodge',type:'defend',isItem:false,name:'翻滾迴避',glyph:'💨',desc:'被動：受傷時打出，完全閃躲'},
-  shield:{id:'shield',type:'defend',isItem:false,name:'舉盾掩護',glyph:'🛡️',desc:'被動：受傷時打出，減免 2 點'},
-  potion:{id:'potion',type:'item',isItem:true,name:'回復藥',glyph:'🌿',desc:'消耗品：恢復 3 HP'},
-  meat:{id:'meat',type:'item',isItem:true,name:'烤肉',glyph:'🍖',desc:'消耗品：本回合 +2 步'},
-  flash:{id:'flash',type:'item',isItem:true,name:'閃光彈',glyph:'⚡',desc:'消耗品：魔物本回合仍會移動，但攻擊被取消'},
-  trap:{id:'trap',type:'item',isItem:true,name:'落穴陷阱',glyph:'🕳️',desc:'消耗品：放在相鄰格。魔物踩中 -2 HP 並取消攻擊'},
-  bomb:{id:'bomb',type:'item',isItem:true,name:'大爆彈桶',glyph:'💣',desc:'消耗品：放在相鄰格。耗 1 步點燃或被攻擊引爆，周圍一圈 4 傷'},
-};
-let deckCounts = {basic:5,heavy:4,skill:3,dodge:4,shield:4,potion:3,meat:2,flash:1,trap:2,bomb:2};
-
-/* ===================== STATE ===================== */
-const GRID_SIZE = 7, MAX_HAND = 3;
-let setupIdx = 1, selectedMonster = 0;
-let currentTurn = 1, activePlayerIndex = 0, gameActive = false, isProcessing = false, placementMode = null;
-let trapPos = [], bombPos = [], dangerZones = [];
-let deck = [], discardPile = [], removedCards = [], hand = [];
-let players = [
-  {id:0,name:'大劍',hp:15,maxHp:15,move:1,maxMove:1,x:2,y:6,icon:'🗡️',color:'red',classType:'gs',baseDmg:2,comboUsed:false},
-  {id:1,name:'片手劍',hp:12,maxHp:12,move:2,maxMove:2,x:4,y:6,icon:'🛡️',color:'blue',classType:'sns',baseDmg:1,comboUsed:false},
-];
-const monster = {name:'',img:'',hp:40,maxHp:40,dmgMod:0,x:3,y:1,intent:null,blinded:false,phantomX:-1,phantomY:-1,fly:0,armor:0,enraged:false,lastMove:''};
-const newStatus=()=>({slow:0,stun:0,poison:0,burn:0,bleed:0});
-players.forEach(p=>p.st=newStatus());
-
-/* ===================== HEX MATH ===================== */
-const offsetToAxial=(c,r)=>({q:c-Math.floor(r/2),r});
-const axialToOffset=(q,r)=>({x:q+Math.floor(r/2),y:r});
-function getDistance(x1,y1,x2,y2){const a=offsetToAxial(x1,y1),b=offsetToAxial(x2,y2);return (Math.abs(a.q-b.q)+Math.abs(a.r-b.r)+Math.abs(a.q+a.r-b.q-b.r))/2;}
-function inBounds(p){return p.x>=0&&p.x<GRID_SIZE&&p.y>=0&&p.y<GRID_SIZE;}
-function getNeighbors(x,y){const a=offsetToAxial(x,y);return [[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]].map(d=>axialToOffset(a.q+d[0],a.r+d[1])).filter(inBounds);}
-
-/* ===================== UI HELPERS ===================== */
-function toast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1600);}
-function logMsg(msg,isAlert=false){const b=document.getElementById('battle-log');const e=document.createElement('div');e.innerHTML=msg;if(isAlert)e.className='text-amber-300 font-bold';b.appendChild(e);b.scrollTop=b.scrollHeight;
-  const m=document.getElementById('mini-log');if(m){const rows=[...b.children].slice(-2);m.innerHTML=rows.map(r=>`<div class="truncate ${r.className}">${r.innerHTML}</div>`).join('');}}
-function toggleDrawer(n){const d=document.getElementById('drawer-'+n),b=document.getElementById('backdrop-'+n);const o=d.classList.contains('open');d.classList.toggle('open',!o);b.classList.toggle('open',!o);}
-function shakeScreen(){const g=document.getElementById('grid-wrap');g.classList.remove('shake');void g.offsetWidth;g.classList.add('shake');}
-function spawnFx(x,y,html,extraCls=''){const cell=document.getElementById(`cell-${x}-${y}`);if(!cell)return;const fx=document.createElement('div');fx.className='fx '+extraCls;fx.style.left=cell.style.left;fx.style.top=cell.style.top;fx.style.width=cell.style.width;fx.style.height=cell.style.height;fx.innerHTML=html;document.getElementById('grid-container').appendChild(fx);setTimeout(()=>fx.remove(),750);}
-const pName=p=>`<b class="${p.color==='red'?'text-red-300':'text-blue-300'}">${p.name}</b>`;
-
-/* ===================== SAVE / RECORDS (localStorage) ===================== */
-const SAVE_KEY='mhdesk_save_v1';
-const speciesWon=s=>Object.values(s.hunts).filter(h=>h.wins>0).length;
-const ACH=[
-  {id:'first_win',icon:'🎯',name:'初次狩獵',desc:'首次討伐成功',test:s=>s.totals.wins>=1},
-  {id:'win5',icon:'🗡️',name:'老練獵人',desc:'累計討伐 5 次',test:s=>s.totals.wins>=5},
-  {id:'win20',icon:'⚔️',name:'狩獵狂',desc:'累計討伐 20 次',test:s=>s.totals.wins>=20},
-  {id:'species10',icon:'📖',name:'圖鑑收集家',desc:'討伐 10 種不同魔物',test:s=>speciesWon(s)>=10},
-  {id:'species_all',icon:'👑',name:'傳說獵人',desc:'34 種魔物全部討伐',test:s=>speciesWon(s)>=MONSTERS.length},
-  {id:'elder',icon:'🐉',name:'古龍討伐者',desc:'討伐任一 ★★★ 古龍',test:s=>MONSTERS.some(m=>m.t===3&&(s.hunts[m.f]||{}).wins>0)},
-  {id:'elder_all',icon:'🌌',name:'古龍終結者',desc:'所有 ★★★ 古龍皆討伐',test:s=>MONSTERS.filter(m=>m.t===3).every(m=>(s.hunts[m.f]||{}).wins>0)},
-  {id:'no_damage',icon:'✨',name:'完美狩獵',desc:'一場零受傷討伐',test:(s,g)=>g&&g.win&&g.damageTaken===0},
-  {id:'fast',icon:'⚡',name:'速攻',desc:'5 回合內討伐',test:(s,g)=>g&&g.win&&g.turns<=5},
-  {id:'bomb_kill',icon:'💣',name:'爆破專家',desc:'用爆彈桶完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='bomb'},
-  {id:'trap_kill',icon:'🕳️',name:'陷阱大師',desc:'用落穴陷阱完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='trap'},
-  {id:'comeback',icon:'🔥',name:'絕地反攻',desc:'一名獵人倒下後仍討伐成功',test:(s,g)=>g&&g.win&&g.downed},
-];
-function loadSave(){try{const s=JSON.parse(localStorage.getItem(SAVE_KEY));if(s&&s.hunts&&s.totals)return s;}catch(e){}return {hunts:{},ach:{},totals:{wins:0,losses:0}};}
-function persist(){try{localStorage.setItem(SAVE_KEY,JSON.stringify(save));}catch(e){}}
-let save=loadSave();
-const stats={damageTaken:0,defendUsed:0,lastHit:''};
-function recordResult(win){
-  const h=save.hunts[monster.img]||(save.hunts[monster.img]={tries:0,wins:0,bestTurn:null});
-  h.tries++;if(win){h.wins++;if(h.bestTurn===null||currentTurn<h.bestTurn)h.bestTurn=currentTurn;save.totals.wins++;}else save.totals.losses++;
-  const g={win,turns:currentTurn,damageTaken:stats.damageTaken,lastHit:stats.lastHit,downed:players.some(p=>p.hp<=0)};
-  const fresh=[];ACH.forEach(a=>{if(!save.ach[a.id]&&a.test(save,g)){save.ach[a.id]=Date.now();fresh.push(a);}});
-  persist();return fresh;
-}
-function renderRecords(){
-  const s=save,won=speciesWon(s),unlocked=Object.keys(s.ach).length;
-  let html=`<div class="grid grid-cols-3 gap-2 text-center mb-3">
-    <div class="panel p-2"><div class="text-[10px] text-gray-400">討伐成功</div><div class="font-black text-lg text-green-300">${s.totals.wins}<span class="text-[10px] text-gray-500 font-normal"> / 失敗 ${s.totals.losses}</span></div></div>
-    <div class="panel p-2"><div class="text-[10px] text-gray-400">圖鑑</div><div class="font-black text-lg text-amber-300">${won}<span class="text-xs text-gray-500">/${MONSTERS.length}</span></div></div>
-    <div class="panel p-2"><div class="text-[10px] text-gray-400">成就</div><div class="font-black text-lg text-purple-300">${unlocked}<span class="text-xs text-gray-500">/${ACH.length}</span></div></div></div>`;
-  html+=`<b class="text-xs text-amber-300">🏅 成就</b><div class="grid grid-cols-2 gap-1.5 mt-1 mb-3">`+ACH.map(a=>{const on=!!s.ach[a.id];
-    return `<div class="panel p-2 flex gap-2 items-center ${on?'':'opacity-40'}"><span class="text-xl">${on?a.icon:'🔒'}</span><div class="min-w-0"><div class="text-[11px] font-bold truncate">${a.name}</div><div class="text-[9px] text-gray-400 leading-tight">${a.desc}</div></div></div>`;}).join('')+`</div>`;
-  html+=`<b class="text-xs text-amber-300">📖 狩獵圖鑑</b><div class="grid grid-cols-4 gap-1.5 mt-1 mb-3">`+MONSTERS.map(m=>{const h=s.hunts[m.f],w=h?h.wins:0;
-    return `<div class="text-center"><div class="mon-pick ${w?'':'opacity-40 grayscale'}" style="padding:3px"><img src="${m.f}">${w?`<span class="tier bg-green-600 text-white">✓${w}</span>`:''}</div>
-      <div class="text-[9px] mt-0.5 truncate">${m.n}</div><div class="text-[8px] text-gray-500 leading-tight">${h?`${h.wins}勝${h.tries-h.wins}敗${h.bestTurn?'<br>最快 '+h.bestTurn+' 回':''}`:'未遭遇'}</div></div>`;}).join('')+`</div>`;
-  html+=`<div class="panel p-3 space-y-2"><b class="text-xs text-amber-300">💾 備份 / 還原</b>
-    <p class="text-[10px] text-gray-400 leading-snug">紀錄存在這台裝置的瀏覽器裡（清除瀏覽資料會一起清掉）。要搬到別台裝置：按「複製備份碼」，到另一台貼進欄位按「還原」。</p>
-    <div class="flex gap-2"><button onclick="exportSave()" class="tap btn-ghost flex-1 text-xs">複製備份碼</button><button onclick="resetSave()" class="tap btn-ghost flex-1 text-xs text-red-300">清除紀錄</button></div>
-    <div class="flex gap-2"><input id="import-box" placeholder="貼上備份碼" class="flex-1 min-w-0 bg-black/40 border border-gray-700 rounded-lg px-2 py-2 text-xs outline-none"><button onclick="importSave()" class="tap btn-primary px-4 text-xs">還原</button></div></div>`;
-  document.getElementById('records-body').innerHTML=html;
-}
-function openRecords(){renderRecords();toggleDrawer('records');}
-function exportSave(){const code=btoa(unescape(encodeURIComponent(JSON.stringify(save))));const fallback=()=>prompt('請手動全選複製備份碼：',code);
-  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(code).then(()=>toast('備份碼已複製到剪貼簿'),fallback);else fallback();}
-function importSave(){const v=(document.getElementById('import-box').value||'').trim();
-  try{const s=JSON.parse(decodeURIComponent(escape(atob(v))));if(!s.hunts||!s.totals)throw 0;save=s;persist();renderRecords();if(document.getElementById('mon-grid').children.length)renderMonsterGrid();toast('紀錄已還原');}catch(e){toast('備份碼格式不正確');}}
-function resetSave(){if(!confirm('確定要清除所有狩獵紀錄與成就？'))return;save={hunts:{},ach:{},totals:{wins:0,losses:0}};persist();renderRecords();if(document.getElementById('mon-grid').children.length)renderMonsterGrid();toast('已清除');}
-
-/* ===================== SETUP WIZARD ===================== */
-function renderMonsterGrid(){
-  const g=document.getElementById('mon-grid');g.innerHTML='';
-  MONSTERS.forEach((m,i)=>{
-    const d=document.createElement('button');d.className='mon-pick'+(i===selectedMonster?' sel':'');
-    const wins=(save.hunts[m.f]||{}).wins||0;
-    d.innerHTML=`<img src="${m.f}" alt="${m.n}"><span class="tier ${TIER[m.t].cls}">${TIER[m.t].label}</span>${wins?`<span class="tier bg-green-600 text-white" style="right:auto;left:4px;top:auto;bottom:4px">✓${wins}</span>`:''}`;
-    d.onclick=()=>{selectedMonster=i;renderMonsterGrid();};
-    g.appendChild(d);
-  });
-  const m=MONSTERS[selectedMonster],t=TIER[m.t];
-  document.getElementById('mon-preview-img').src=m.f;
-  document.getElementById('mon-preview-name').innerText=m.n;
-  document.getElementById('mon-preview-stats').innerHTML=`${t.label} ・ HP ${t.hp} ・ 攻擊修正 ${t.dmg>=0?'+':''}${t.dmg}<br><span class="text-amber-300">獨家招式：</span>${movesetOf(m.f).s.map(a=>a.name).join('／')}`;
-}
-function renderDeckBuilder(){
-  const list=document.getElementById('deck-builder-list');list.innerHTML='';let total=0,items=0;
-  for(const id in CARDS_DB){const c=CARDS_DB[id],n=deckCounts[id];total+=n;if(c.isItem)items+=n;
-    list.innerHTML+=`<div class="panel p-2 flex items-center gap-2">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg card ${c.type} !p-0 !w-9">${c.glyph}</div>
-      <div class="flex-1 min-w-0"><div class="text-sm font-bold">${c.name} ${c.isItem?'<span class="text-[9px] bg-amber-900 text-amber-300 px-1 rounded">道具</span>':''}</div><div class="text-[10px] text-gray-400 leading-tight">${c.desc}</div></div>
-      <div class="flex items-center gap-1">
-        <button onclick="adjDeck('${id}',-1)" class="tap w-9 rounded-lg bg-gray-700 font-black">−</button>
-        <span class="w-6 text-center font-black">${n}</span>
-        <button onclick="adjDeck('${id}',1)" class="tap w-9 rounded-lg bg-gray-700 font-black">+</button>
-      </div></div>`;}
-  document.getElementById('deck-total').innerText=total;document.getElementById('deck-items').innerText=items;
-  const err=document.getElementById('deck-error'),btn=document.getElementById('btn-next');
-  if(total!==30){err.innerText='需剛好 30 張';btn.disabled=true;btn.innerText=`目前 ${total}/30`;}
-  else if(items>10){err.innerText='道具最多 10 張';btn.disabled=true;btn.innerText=`道具超載 ${items}/10`;}
-  else{err.innerText='';btn.disabled=false;btn.innerText='🔥 開始狩獵';}
-}
-function adjDeck(id,amt){if(amt<0&&deckCounts[id]<=0)return;deckCounts[id]+=amt;renderDeckBuilder();}
-function setupStep(dir){
-  if(setupIdx===3&&dir===1){startGame();return;}
-  setupIdx=Math.min(3,Math.max(1,setupIdx+dir));
-  [1,2,3].forEach(i=>document.getElementById('step-'+i).classList.toggle('hidden',i!==setupIdx));
-  [...document.getElementById('step-dots').children].forEach((d,i)=>d.classList.toggle('on',i<setupIdx));
-  document.getElementById('btn-back').classList.toggle('hidden',setupIdx===1);
-  const btn=document.getElementById('btn-next');btn.disabled=false;
-  if(setupIdx===1)btn.innerText='下一步 ➔';
-  if(setupIdx===2){btn.innerText='下一步 ➔';renderMonsterGrid();}
-  if(setupIdx===3)renderDeckBuilder();
-}
-
-/* ===================== GAME START ===================== */
-function startGame(){
-  stats.damageTaken=0;stats.defendUsed=0;stats.lastHit='';players.forEach(p=>p.st=newStatus());
-  players[0].name=document.getElementById('setup-p0-name').value||'大劍';
-  players[0].icon=document.getElementById('setup-p0-icon').value||'🗡️';
-  players[1].name=document.getElementById('setup-p1-name').value||'片手劍';
-  players[1].icon=document.getElementById('setup-p1-icon').value||'🛡️';
-  const m=MONSTERS[selectedMonster],t=TIER[m.t];
-  Object.assign(monster,{name:m.n,img:m.f,hp:t.hp,maxHp:t.hp,dmgMod:t.dmg});
-  document.getElementById('hud-mon-img').src=m.f;document.getElementById('hud-mon-name').innerText=m.n;
-  document.getElementById('go-img').src=m.f;
-  deck=[];for(const id in deckCounts)for(let i=0;i<deckCounts[id];i++)deck.push(CARDS_DB[id]);
-  deck.sort(()=>Math.random()-.5);
-  document.getElementById('screen-setup').classList.add('hidden');
-  document.getElementById('screen-game').classList.remove('hidden');
-  gameActive=true;generateGrid();drawCards(MAX_HAND);selectPlayer(0);planMonsterIntent();updateUI();
-  logMsg(`戰鬥開始！${monster.name} 出現了！`,true);
-}
-function generateGrid(){
-  const c=document.getElementById('grid-container');c.innerHTML='';
-  const W=100/7.5,H=100/5.5;
-  for(let y=0;y<GRID_SIZE;y++)for(let x=0;x<GRID_SIZE;x++){
-    const cell=document.createElement('div');cell.className='hex';cell.id=`cell-${x}-${y}`;
-    cell.style.left=`${x*W+(y%2?W/2:0)}%`;cell.style.top=`${y*H*.75}%`;cell.style.width=`${W}%`;cell.style.height=`${H}%`;
-    cell.onclick=()=>handleGridClick(x,y);c.appendChild(cell);
-  }
-}
-
-/* ===================== CARDS ===================== */
-function drawCards(n){for(let i=0;i<n;i++){if(hand.length>=MAX_HAND)break;if(!deck.length){if(!discardPile.length)break;deck=discardPile;discardPile=[];deck.sort(()=>Math.random()-.5);logMsg('♻️ 牌庫耗盡，棄牌堆洗回牌庫');}hand.push(deck.pop());}}
-function renderHand(){
-  const c=document.getElementById('hand-container');c.innerHTML='';
-  const p=players[activePlayerIndex];const adj=getDistance(p.x,p.y,monster.x,monster.y)<=1;
-  hand.forEach((card,i)=>{
-    let playable=true,hint='';
-    if(card.type==='defend'){playable=false;hint='被動';}
-    else if((card.type==='attack'||card.type==='skill')&&monster.fly>0){playable=false;hint='飛行中';}
-    else if(card.type==='attack'&&!adj){playable=false;hint='需相鄰';}
-    else if(card.type==='skill'&&(!adj||p.move<1)){playable=false;hint=!adj?'需相鄰':'需 1 步';}
-    else if(card.id==='potion'&&p.hp>=p.maxHp){playable=false;hint='HP已滿';}
-    const el=document.createElement('div');el.className=`card ${card.type}`;
-    el.innerHTML=`<div class="flex items-center gap-1"><span class="text-base">${card.glyph}</span><b class="text-[11px] truncate">${card.name}</b></div>
-      <div class="text-[9px] text-gray-300 leading-tight flex-1 clamp3">${card.desc}</div>
-      <div class="flex flex-col gap-1 mt-1">
-        <button class="cbtn play" ${playable?`onclick="playCard(${i})"`:'disabled'}>${playable?'打出':hint}</button>
-        <button class="cbtn dash" onclick="discardForMove(${i})">棄牌 +1步</button></div>`;
-    c.appendChild(el);
-  });
-  document.getElementById('hand-count').innerText=hand.length;
-}
-function removeFromHand(i,toRemoved=false){const card=hand[i];(toRemoved?removedCards:discardPile).push(card);hand.splice(i,1);}
-function discardForMove(i){if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];const card=hand[i];p.move+=1;logMsg(`💨 ${pName(p)} 棄掉 [${card.name}] 換得 +1 步`);toast('棄牌換步：+1 步移動力');removeFromHand(i);cancelPlacement();updateUI();}
-function cancelPlacement(){placementMode=null;document.getElementById('placement-hint').classList.add('hidden');}
-function hitMonster(dmg,src='weapon',x,y){if(monster.armor>0&&dmg>1){dmg=Math.max(1,dmg-2);logMsg(`🛡️ ${monster.name} 硬化中，傷害減為 ${dmg}`);}monster.hp-=dmg;stats.lastHit=src;spawnFx(x??monster.x,y??monster.y,`<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);shakeScreen();}
-function playCard(i){
-  if(!gameActive||isProcessing)return;const card=hand[i],p=players[activePlayerIndex];const dist=getDistance(p.x,p.y,monster.x,monster.y);
-  if(card.isItem){
-    if(card.id==='potion'){if(p.hp>=p.maxHp)return toast('HP 已滿');p.hp=Math.min(p.maxHp,p.hp+3);spawnFx(p.x,p.y,'<span class="text-xl text-green-300">+3</span>');logMsg(`🌿 ${pName(p)} 喝下回復藥 +3 HP`);}
-    else if(card.id==='meat'){p.move+=2;logMsg(`🍖 ${pName(p)} 吃下烤肉 +2 步`);}
-    else if(card.id==='flash'){monster.blinded=true;dangerZones=[];logMsg(`⚡ 閃光彈！${monster.name} 本回合的攻擊被取消（仍會移動）`,true);}
-    else if(card.id==='trap'||card.id==='bomb'){placementMode={type:card.id,cardIndex:i};document.getElementById('placement-hint').classList.remove('hidden');toast('點擊相鄰空格放置');updateUI();return;}
-    removeFromHand(i,true);updateUI();return;
-  }
-  if((card.type==='skill'||card.type==='attack')&&monster.fly>0)return toast('魔物飛在空中，近戰打不到！');
-  if(card.type==='skill'){
-    if(p.move<1)return toast('技能需要 1 步');if(dist>1)return toast('必須相鄰');
-    p.move-=1;
-    if(p.classType==='gs'){hitMonster(5);logMsg(`💥 ${pName(p)} 發動【真・蓄力斬】5 傷！`);}
-    else{hitMonster(2);let extra='';if(!p.comboUsed){p.comboUsed=true;p.move+=1;extra='，連段回 1 步';}logMsg(`⚔️ ${pName(p)} 發動【鬼人連斬】2 傷${extra}`);}
-    removeFromHand(i);updateUI();checkWinLose();return;
-  }
-  if(card.type==='attack'){
-    if(dist>1)return toast('必須相鄰才能攻擊');const dmg=p.baseDmg+(card.id==='heavy'?1:0);
-    hitMonster(dmg);logMsg(`⚔️ ${pName(p)} 打出 [${card.name}] ${dmg} 傷`);removeFromHand(i);updateUI();checkWinLose();
-  }
-}
-
-/* ===================== BOARD INTERACTION ===================== */
-function selectPlayer(i){if(isProcessing)return;activePlayerIndex=i;cancelPlacement();updateUI();}
-function isOccupied(x,y){return (monster.x===x&&monster.y===y)||players.some(p=>p.hp>0&&p.x===x&&p.y===y);}
-async function handleGridClick(x,y){
-  if(!gameActive||isProcessing)return;const p=players[activePlayerIndex];
-  const clickedP=players.find(q=>q.hp>0&&q.x===x&&q.y===y);if(clickedP&&clickedP.id!==activePlayerIndex){selectPlayer(clickedP.id);return;}
-  if(placementMode){
-    const taken=trapPos.concat(bombPos).some(t=>t.x===x&&t.y===y);
-    if(getDistance(p.x,p.y,x,y)===1&&!isOccupied(x,y)&&!taken){
-      (placementMode.type==='trap'?trapPos:bombPos).push({x,y});
-      logMsg(`📍 ${pName(p)} 在 [${x},${y}] 佈置了${placementMode.type==='trap'?'落穴陷阱':'大爆彈桶'}`);
-      removeFromHand(placementMode.cardIndex,true);cancelPlacement();updateUI();
-    }else toast('必須放在相鄰的空格');
-    return;
-  }
-  if(bombPos.some(b=>b.x===x&&b.y===y)){
-    if(p.move>=1){p.move-=1;logMsg(`🧨 ${pName(p)} 耗 1 步遠程點燃爆彈桶！`);await triggerBombExplosion(x,y);}else toast('點燃需要 1 步');
-    return;
-  }
-  if(isOccupied(x,y))return;
-  if(getDistance(p.x,p.y,x,y)===1&&p.move>0){p.x=x;p.y=y;p.move--;updateUI();}
-  else if(p.move<=0)toast('步數用完了，可按手牌的「棄牌 +1步」換移動力');
-}
-async function triggerBombExplosion(cx,cy,skipMonster=false){
-  isProcessing=true;const idx=bombPos.findIndex(b=>b.x===cx&&b.y===cy);if(idx!==-1)bombPos.splice(idx,1);
-  updateUI();spawnFx(cx,cy,'<span class="text-4xl">💥</span>');getNeighbors(cx,cy).forEach(n=>spawnFx(n.x,n.y,'<span class="text-2xl opacity-80">🔥</span>'));shakeScreen();
-  await new Promise(r=>setTimeout(r,350));
-  if(monster.hp>0&&!skipMonster&&getDistance(monster.x,monster.y,cx,cy)<=1){
-    if(monster.fly>0)logMsg(`🕊️ ${monster.name} 在空中，爆炸沒炸到牠`);else{hitMonster(4,'bomb');logMsg(`💥 ${monster.name} 被炸彈波及 4 傷！`);}}
-  for(const p of players)if(p.hp>0&&getDistance(p.x,p.y,cx,cy)<=1){logMsg(`⚠️ ${pName(p)} 在爆炸範圍內！`);await applyDamageToPlayer(p,4,'大爆彈桶爆炸');}
-  for(const cb of bombPos.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){logMsg('⛓️ 連環爆炸！');await triggerBombExplosion(cb.x,cb.y,skipMonster);}
-  updateUI();checkWinLose();isProcessing=false;
-}
-function showDefenseModal(p,dmg,src,hasDodge,hasShield){
-  return new Promise(res=>{
-    const m=document.getElementById('defense-modal');
-    document.getElementById('def-target').innerText=p.name;document.getElementById('def-dmg').innerText=dmg;document.getElementById('def-source').innerText=src;
-    const wire=(id,show,val)=>{const old=document.getElementById(id);const nb=old.cloneNode(true);old.parentNode.replaceChild(nb,old);nb.classList.toggle('hidden',!show);nb.onclick=()=>{m.classList.add('hidden');res(val);};};
-    wire('btn-use-dodge',hasDodge,'dodge');wire('btn-use-shield',hasShield,'shield');wire('btn-take-dmg',true,'take');
-    m.classList.remove('hidden');
-  });
-}
-async function applyDamageToPlayer(p,dmg,src){
-  if(p.hp<=0)return {taken:0,dodged:false};const dI=hand.findIndex(c=>c.id==='dodge'),sI=hand.findIndex(c=>c.id==='shield');
-  let taken=dmg,dodged=false;
-  if(dI===-1&&sI===-1){logMsg(`🩸 ${pName(p)} 無防禦手段，受到 ${dmg} 傷`);}
-  else{const ch=await showDefenseModal(p,dmg,src,dI!==-1,sI!==-1);
-    if(ch==='dodge'){taken=0;dodged=true;stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='dodge'));logMsg(`💨 ${pName(p)} 翻滾迴避，完美閃躲！`);}
-    else if(ch==='shield'){taken=Math.max(0,dmg-2);stats.defendUsed++;removeFromHand(hand.findIndex(c=>c.id==='shield'));logMsg(`🛡️ ${pName(p)} 舉盾，受到 ${taken} 傷`);}
-    else logMsg(`🩸 ${pName(p)} 硬扛 ${dmg} 傷`);}
-  p.hp-=taken;stats.damageTaken+=taken;if(taken>0)spawnFx(p.x,p.y,`<span class="text-xl text-red-400">-${taken}</span>`);else spawnFx(p.x,p.y,'<span class="text-base text-blue-200">MISS</span>');
-  updateUI();return {taken,dodged};
-}
-function pushPlayer(p){let best=null,bd=getDistance(p.x,p.y,monster.x,monster.y);
-  getNeighbors(p.x,p.y).forEach(n=>{if(isOccupied(n.x,n.y))return;const d=getDistance(n.x,n.y,monster.x,monster.y);if(d>bd){bd=d;best=n;}});
-  if(best){p.x=best.x;p.y=best.y;logMsg(`💨 ${pName(p)} 被擊退 1 格`);}}
-function applyHitEffects(p,hit){if(!hit||p.hp<=0)return;for(const h of hit){
-  if(h==='push')pushPlayer(p);else{p.st[h]=Math.max(p.st[h],FX[h].turns);logMsg(`${FX[h].icon} ${pName(p)} ${FX[h].label}！${FX[h].desc}`);}}}
-
-/* ===================== MONSTER AI ===================== */
-const HEX_DIRS=[[1,0],[1,-1],[0,-1],[-1,0],[-1,1],[0,1]];
-function cellsWithin(cx,cy,r,includeCenter=false){const out=[];for(let y=0;y<GRID_SIZE;y++)for(let x=0;x<GRID_SIZE;x++){const d=getDistance(x,y,cx,cy);if(d<=r&&(includeCenter||d>0))out.push({x,y});}return out;}
-function pickWeighted(arr){let t=arr.reduce((s,a)=>s+a.w,0),r=Math.random()*t;for(const a of arr){r-=a.w;if(r<=0)return a;}return arr[arr.length-1];}
-function isEnraged(){return monster.enraged||monster.hp<=monster.maxHp*.4;}
-function planMonsterIntent(){
-  if(monster.hp<=0)return;
-  const enraged=isEnraged();
-  let pool=monsterMovePool();
-  if(enraged&&pool.some(a=>a.sig))pool=pool.filter(a=>a.name!=='咬擊'&&a.name!=='咆哮');
-  if(monster.lastMove&&pool.length>1)pool=pool.filter(a=>a.name!==monster.lastMove);
-  const base=pickWeighted(pool);monster.lastMove=base.name;
-  const dmg=base.dmg>0?Math.max(1,base.dmg+monster.dmgMod+(enraged?1:0)):0;
-  monster.intent={...base,dmg,name:(enraged?'🔥':'')+base.name,fx:fxSummary(base)};
-  let target=players[0],minD=999;players.forEach(p=>{if(p.hp<=0)return;const d=getDistance(monster.x,monster.y,p.x,p.y);if(d<minD){minD=d;target=p;}});
-  // 逼近：每步挑離目標最近的相鄰格（可撞進獵人所在格造成擊退）
-  let cur={x:monster.x,y:monster.y},prev=cur;
-  for(let s=0;s<(base.move??1);s++){
-    if(cur.x===target.x&&cur.y===target.y)break;
-    let best=null,bd=getDistance(cur.x,cur.y,target.x,target.y);
-    getNeighbors(cur.x,cur.y).forEach(n=>{if(trapPos.some(t=>t.x===n.x&&t.y===n.y)&&Math.random()<.5)return;if(players.some(p=>p.hp>0&&p.x===n.x&&p.y===n.y&&p!==target))return;const d=getDistance(n.x,n.y,target.x,target.y);if(d<bd){bd=d;best=n;}});
-    if(!best)break;prev=cur;cur=best;
-  }
-  monster.phantomX=cur.x;monster.phantomY=cur.y;
-  const pa=offsetToAxial(cur.x,cur.y);let dq,dr;
-  if(prev.x!==cur.x||prev.y!==cur.y){const a=offsetToAxial(prev.x,prev.y);dq=pa.q-a.q;dr=pa.r-a.r;}
-  else{let bn=null,bd=999;getNeighbors(cur.x,cur.y).forEach(n=>{const d=getDistance(n.x,n.y,target.x,target.y);if(d<bd){bd=d;bn=n;}});const a=bn?offsetToAxial(bn.x,bn.y):{q:pa.q+1,r:pa.r};dq=a.q-pa.q;dr=a.r-pa.r;}
-  const di=Math.max(0,HEX_DIRS.findIndex(d=>d[0]===dq&&d[1]===dr));
-  dangerZones=[];const L=base.len||1;
-  switch(base.range){
-    case 'line':for(let i=1;i<=L;i++)dangerZones.push(axialToOffset(pa.q+dq*i,pa.r+dr*i));break;
-    case 'radius':dangerZones=cellsWithin(cur.x,cur.y,L);break;
-    case 'ring':dangerZones=cellsWithin(cur.x,cur.y,2).filter(c=>getDistance(c.x,c.y,cur.x,cur.y)===2);break;
-    case 'arc':[di,(di+1)%6,(di+5)%6].forEach(k=>dangerZones.push(axialToOffset(pa.q+HEX_DIRS[k][0],pa.r+HEX_DIRS[k][1])));break;
-    case 'target':dangerZones=cellsWithin(target.x,target.y,base.len||0,true);break;
-    case 'random':dangerZones=cellsWithin(cur.x,cur.y,L).sort(()=>Math.random()-.5).slice(0,base.n||3);break;
-    case 'all':dangerZones=cellsWithin(cur.x,cur.y,99);break;
-    default:dangerZones=[];
-  }
-  dangerZones=dangerZones.filter(c=>inBounds(c)&&!(c.x===cur.x&&c.y===cur.y));
-  logMsg(`⚠️ ${monster.name} 鎖定 ${pName(target)}，準備【${monster.intent.name}】：${base.desc}`);
-}
-async function endTurn(){
-  if(!gameActive||isProcessing)return;isProcessing=true;cancelPlacement();
-  if(monster.fly>0){monster.fly=0;logMsg(`🕊️ ${monster.name} 降落了`);}
-  monster.armor=0;
-  const ma=offsetToAxial(monster.x,monster.y),pa=offsetToAxial(monster.phantomX,monster.phantomY);let pq=pa.q-ma.q,pr=pa.r-ma.r;if(!pq&&!pr){pq=1;pr=0;}
-  for(const p of players)if(p.hp>0&&p.x===monster.phantomX&&p.y===monster.phantomY){
-    const a=offsetToAxial(p.x,p.y),np=axialToOffset(a.q+pq,a.r+pr);logMsg(`💥 ${monster.name} 推進，將 ${pName(p)} 撞退 1 格！`);
-    if(!inBounds(np)||isOccupied(np.x,np.y)){
-      const free=getNeighbors(p.x,p.y).filter(n=>!isOccupied(n.x,n.y)&&!(n.x===monster.phantomX&&n.y===monster.phantomY));
-      p.hp-=3;stats.damageTaken+=3;spawnFx(p.x,p.y,'<span class="text-xl text-red-400">-3</span>');logMsg(`💥 ${pName(p)} 被撞到邊緣，重摔受到 3 傷（無法防禦）！`,true);shakeScreen();
-      if(free.length){const f=free[Math.floor(Math.random()*free.length)];p.x=f.x;p.y=f.y;}
-    }else{p.x=np.x;p.y=np.y;}
-  }
-  monster.x=monster.phantomX;monster.y=monster.phantomY;updateUI();await new Promise(r=>setTimeout(r,250));
-  const tI=trapPos.findIndex(t=>t.x===monster.x&&t.y===monster.y);
-  if(tI!==-1){trapPos.splice(tI,1);hitMonster(2,'trap');logMsg(`🕳️ ${monster.name} 踏入落穴陷阱！中斷攻擊並受 2 傷`,true);}
-  else{
-    if(bombPos.some(b=>b.x===monster.x&&b.y===monster.y)){logMsg(`💥 ${monster.name} 踩到爆彈桶！`,true);await triggerBombExplosion(monster.x,monster.y);}
-    if(monster.hp>0&&monster.blinded){logMsg(`😵 ${monster.name} 被閃光致盲，攻擊落空`);}
-    else if(monster.hp>0){
-      const it=monster.intent;
-      logMsg(`🐲 ${monster.name} 使出【${it.name}】！${it.desc}`,true);toast(`🐲 ${monster.name}【${it.name}】`);
-      shakeScreen();dangerZones.forEach(z=>spawnFx(z.x,z.y,'<span class="text-2xl">💢</span>'));
-      for(const s of (it.self||[])){
-        if(s==='fly'){monster.fly=1;logMsg(`🕊️ ${monster.name} 飛上天空，下回合近戰無法命中！`);}
-        else if(s==='armor'){monster.armor=1;logMsg(`🛡️ ${monster.name} 硬化，下回合受到的傷害 -2`);}
-        else if(s==='enrage'){monster.enraged=true;logMsg(`🔥 ${monster.name} 進入永久狂暴！招式傷害 +1`);}
-        else if(s.startsWith('heal:')){const n=+s.slice(5);monster.hp=Math.min(monster.maxHp,monster.hp+n);spawnFx(monster.x,monster.y,`<span class="text-2xl text-green-300">+${n}</span>`);logMsg(`💚 ${monster.name} 回復 ${n} HP`);}
-        else if(s.startsWith('bombs:')){const n=+s.slice(6);const cells=cellsWithin(monster.x,monster.y,2).filter(c=>!isOccupied(c.x,c.y)&&!trapPos.concat(bombPos).some(t=>t.x===c.x&&t.y===c.y)).sort(()=>Math.random()-.5).slice(0,n);cells.forEach(c=>bombPos.push(c));logMsg(`💣 ${monster.name} 散布了 ${cells.length} 顆爆彈！可以拿來反炸牠，但小心別站旁邊`);}
-        else if(s==='detonate'){const list=[...bombPos];if(!list.length)logMsg('（地圖上沒有爆彈可引爆）');for(const b of list)if(bombPos.some(x=>x.x===b.x&&x.y===b.y))await triggerBombExplosion(b.x,b.y,true);}
-      }
-      updateUI();
-      const hits=dangerZones.filter(z=>bombPos.some(b=>b.x===z.x&&b.y===z.y));
-      if(hits.length){logMsg('🔥 攻擊掃到爆彈桶，引爆！',true);for(const z of hits)if(bombPos.some(b=>b.x===z.x&&b.y===z.y))await triggerBombExplosion(z.x,z.y);}
-      if(monster.hp>0)for(const p of players)if(p.hp>0&&dangerZones.some(z=>z.x===p.x&&z.y===p.y)){
-        let dodged=false;if(it.dmg>0){const r=await applyDamageToPlayer(p,it.dmg,it.name);dodged=r.dodged;}else logMsg(`💢 ${pName(p)} 被【${it.name}】波及`);
-        if(!dodged)applyHitEffects(p,it.hit);
-      }
-    }
-  }
-  monster.blinded=false;checkWinLose();if(!gameActive){isProcessing=false;return;}
-  currentTurn++;
-  players.forEach(p=>{p.move=p.maxMove;p.comboUsed=false;if(p.hp<=0)return;const st=p.st;
-    if(st.stun>0){p.move=0;st.stun--;logMsg(`⚡ ${pName(p)} 麻痺中，本回合無法移動`);}
-    else if(st.slow>0){p.move=Math.max(0,p.move-1);st.slow--;logMsg(`🐌 ${pName(p)} 減速，本回合 -1 步`);}
-    for(const k of ['poison','burn','bleed'])if(st[k]>0){st[k]--;p.hp-=1;stats.damageTaken+=1;spawnFx(p.x,p.y,'<span class="text-lg text-purple-300">-1</span>');logMsg(`${FX[k].icon} ${pName(p)} ${FX[k].label}中 -1 HP`);}
-  });
-  checkWinLose();if(!gameActive){isProcessing=false;return;}
-  drawCards(MAX_HAND-hand.length);planMonsterIntent();updateUI();isProcessing=false;
-}
-function checkWinLose(){
-  if(!gameActive)return;
-  if(monster.hp<=0){gameActive=false;const fresh=recordResult(true);const h=save.hunts[monster.img];
-    showGameOver('🎉 狩獵成功！','text-green-400',`第 ${currentTurn} 回合討伐 ${monster.name}（此魔物 ${h.wins} 勝・最快 ${h.bestTurn} 回）`,fresh);updateUI();}
-  else if(players.every(p=>p.hp<=0)){gameActive=false;const fresh=recordResult(false);
-    showGameOver('💀 任務失敗','text-red-500',`${monster.name} 仍剩 ${monster.hp} HP`,fresh);updateUI();}
-}
-function showGameOver(t,cls,sub,fresh=[]){const o=document.getElementById('game-over');const h=document.getElementById('game-over-title');h.className='text-4xl font-black mb-2 '+cls;h.innerText=t;document.getElementById('game-over-sub').innerText=sub;
-  document.getElementById('go-ach').innerHTML=fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-2 border-amber-500/60 text-left"><span class="text-2xl">${a.icon}</span><div><div class="text-[10px] text-amber-400 font-bold">🏅 新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join('');
-  setTimeout(()=>o.classList.remove('hidden'),500);}
-
-/* ===================== RENDER ===================== */
-function updateUI(){
-  players.forEach(p=>{
-    const stIcons=Object.keys(p.st).filter(k=>p.st[k]>0).map(k=>FX[k].icon).join('');
-    document.getElementById(`p${p.id}-hp`).innerText=`${Math.max(0,p.hp)}/${p.maxHp}${stIcons?' '+stIcons:''}`;
-    document.getElementById(`p${p.id}-hpbar`).style.width=`${Math.max(0,p.hp/p.maxHp*100)}%`;
-    document.getElementById(`p${p.id}-move`).innerText=p.move;
-    document.getElementById(`p${p.id}-name`).innerText=p.name;document.getElementById(`p${p.id}-icon`).innerText=p.icon;
-    const card=document.getElementById(`player-${p.id}-card`);card.style.borderColor=activePlayerIndex===p.id?'var(--amber)':'transparent';card.style.opacity=p.hp>0?1:.4;
-  });
-  document.getElementById('deck-count').innerText=deck.length;document.getElementById('discard-count').innerText=discardPile.length;document.getElementById('removed-count').innerText=removedCards.length;
-  document.getElementById('monster-hp-bar').style.width=`${Math.max(0,monster.hp/monster.maxHp*100)}%`;
-  document.getElementById('monster-hp-text').innerText=`${Math.max(0,monster.hp)}/${monster.maxHp}`;
-  const intentOn=monster.intent&&monster.hp>0&&!monster.blinded;
-  const mst=(monster.fly>0?'🕊️飛行 ':'')+(monster.armor>0?'🛡️硬化 ':'')+(monster.enraged?'🔥狂暴 ':'');
-  document.getElementById('monster-intent-name').innerText=intentOn?`${mst}⚠️ ${monster.intent.name}${monster.intent.dmg>0?` (${monster.intent.dmg}傷)`:''}`:`${mst}😵 攻擊被取消`;
-  document.getElementById('monster-intent-desc').innerText=intentOn?`${monster.intent.desc}${monster.intent.fx?'　'+monster.intent.fx:''}`:'本回合魔物仍會移動，但不會攻擊';
-  document.getElementById('turn-display').innerText=`第 ${currentTurn} 回合`;
-  const ap=players[activePlayerIndex];const reach=(ap.move>0&&!placementMode)?getNeighbors(ap.x,ap.y).filter(n=>!isOccupied(n.x,n.y)):[];
-  const placeable=placementMode?getNeighbors(ap.x,ap.y).filter(n=>!isOccupied(n.x,n.y)&&!trapPos.concat(bombPos).some(t=>t.x===n.x&&t.y===n.y)):[];
-  for(let y=0;y<GRID_SIZE;y++)for(let x=0;x<GRID_SIZE;x++){
-    const cell=document.getElementById(`cell-${x}-${y}`);if(!cell)continue;cell.innerHTML='';cell.className='hex';
-    if(trapPos.some(t=>t.x===x&&t.y===y)){cell.classList.add('item');cell.innerHTML+='<span class="absolute text-xl">🕳️</span>';}
-    if(bombPos.some(b=>b.x===x&&b.y===y)){cell.classList.add('item');cell.innerHTML+='<span class="absolute text-xl">💣</span>';}
-    if(reach.some(n=>n.x===x&&n.y===y)||placeable.some(n=>n.x===x&&n.y===y))cell.classList.add('reach');
-    if(intentOn&&monster.phantomX===x&&monster.phantomY===y){cell.classList.add('phantom');cell.innerHTML+=`<img src="${monster.img}" class="mon-img ghost absolute">`;}
-    if(intentOn&&dangerZones.some(z=>z.x===x&&z.y===y))cell.classList.add('danger');
-    if(monster.hp>0&&monster.x===x&&monster.y===y)cell.innerHTML+=`<img src="${monster.img}" class="mon-img relative">`;
-    players.forEach(p=>{if(p.hp>0&&p.x===x&&p.y===y)cell.innerHTML+=`<div class="hunter-token ${activePlayerIndex===p.id?'active':''}">${p.icon}</div>`;});
-  }
-  renderHand();
-}
-renderMonsterGrid();
-if(location.hash==='#quick')startGame();
-else if(location.hash==='#help'){startGame();toggleDrawer('help');}
-else if(location.hash==='#pick')setupStep(1);
-else if(location.hash==='#deck'){setupStep(1);setupStep(1);}
-else if(location.hash==='#records')openRecords();
-</script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
