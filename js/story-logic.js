@@ -71,8 +71,8 @@ export function applyQuestResult(st, q, r){
     rank: prev&&order.indexOf(prev.rank)>order.indexOf(out.rank)?prev.rank:out.rank};
   if(q.type==='tutorial') st.tutorialDone = true;
   out.unlocked = [
-    ...CHAPTERS.filter(c=>chapterUnlocked(st,c.id) && !beforeCh.includes(c.id)).map(c=>`🗺️ 新章節：${c.name} ${c.sub}`),
-    ...QUESTS.filter(x=>x.urgent && questUnlocked(st,x) && !beforeQ.includes(x.id)).map(x=>`🚨 緊急任務出現：${x.title}`),
+    ...CHAPTERS.filter(c=>chapterUnlocked(st,c.id) && !beforeCh.includes(c.id)).map(c=>({icon:'map', text:`新章節：${c.name} ${c.sub}`})),
+    ...QUESTS.filter(x=>x.urgent && questUnlocked(st,x) && !beforeQ.includes(x.id)).map(x=>({icon:'bell', text:`緊急任務出現：${x.title}`})),
   ];
   st.lastQuest = q.id;
   return out;

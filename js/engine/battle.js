@@ -5,6 +5,7 @@ import { WEAPONS, weaponBonus, armorBonus } from '../data/weapons.js';
 import { CARDS_DB } from '../data/cards.js';
 import { GRID_SIZE, HEX_DIRS, offsetToAxial, axialToOffset, getDistance, inBounds, getNeighbors, cellsWithin, lineDir, stepAlong, shuffle } from './hex.js';
 import { play as sfx, vibrate } from '../audio.js';
+import { icon as ic } from '../icons.js';
 
 export const B = {active:false};
 let H = {};
@@ -32,7 +33,7 @@ const newStatus = () => ({slow:0,stun:0,poison:0,burn:0,bleed:0});
 function buildHunter(spec, id, pos){
   const w = WEAPONS[spec.weapon] || WEAPONS.gs, wb = weaponBonus(spec.wlv);
   const maxHp = w.hp + armorBonus(spec.alv);
-  return {id, name:spec.name||w.name, icon:spec.icon||w.icon, weapon:w, wlv:spec.wlv||1, alv:spec.alv||1,
+  return {id, name:spec.name||w.name, icon:spec.icon||'visor', weapon:w, wlv:spec.wlv||1, alv:spec.alv||1,
     atk:w.atk+wb, skillDmg:w.skill.dmg+wb, hp:maxHp, maxHp, move:w.move, maxMove:w.move,
     x:pos.x, y:pos.y, sx:pos.x, sy:pos.y, color:id===0?'red':'blue', st:newStatus(),
     comboUsed:false, spirit:0, dashBuff:0, resist:spec.resist||null, safe:false};
@@ -127,7 +128,7 @@ function drawCards(n){
     if(!B.deck.length){
       if(!B.discard.length) break;
       B.deck = shuffle(B.discard); B.discard = [];
-      log('♻️ 牌庫耗盡，棄牌堆洗回牌庫');
+      log(`${ic('recycle','text-gray-400')} 牌庫耗盡，棄牌堆洗回牌庫`);
     }
     B.hand.push(B.deck.pop());
   }
@@ -146,7 +147,7 @@ export function discardForMove(i){
   const h=curHunter(), card=B.hand[i]; if(!card||!alive(h)) return;
   if(!allowed('discard',{card})) return;
   h.move+=1; B.undo=[];
-  log(`💨 ${hName(h)} 棄掉 [${card.name}] 換得 +1 步`); toast('棄牌換步：+1 步移動力'); sfx('tap');
+  log(`${ic('footprint','text-gray-300')} ${hName(h)} 棄掉 [${card.name}] 換得 +1 步`); toast('棄牌換步：+1 步移動力'); sfx('tap');
   removeFromHand(i); B.placement=null; emit('discard',{card}); render();
 }
 export function undoMove(){
@@ -163,15 +164,15 @@ export function gatherHere(){
   if(h.move<1) return toast('採集需要 1 步');
   if(!allowed('gather')) return;
   h.move-=1; B.gathers.splice(gi,1); B.gathered++; B.undo=[];
-  fx(h.x,h.y,'<span class="text-2xl">🌿</span>'); sfx('gather');
-  log(`🌿 ${hName(h)} 採集成功（${B.gathered}/${B.cfg.gather.need}）`);
+  fx(h.x,h.y,`<span class="text-3xl text-green-300">${ic('herb')}</span>`); sfx('gather');
+  log(`${ic('herb','text-green-300')} ${hName(h)} 採集成功（${B.gathered}/${B.cfg.gather.need}）`);
   emit('gather'); render();
   if(B.gathered>=B.cfg.gather.need) finish(true,'採集目標達成！');
 }
 
 export function hitMonster(dmg, src='weapon', x, y){
   const m=B.mon; if(!monAlive()) return 0;
-  if(m.armor>0 && dmg>1){ dmg=Math.max(1,dmg-2); log(`🛡️ ${m.name} 硬化中，傷害減為 ${dmg}`); }
+  if(m.armor>0 && dmg>1){ dmg=Math.max(1,dmg-2); log(`${ic('rock','text-stone-300')} ${m.name} 硬化中，傷害減為 ${dmg}`); }
   m.hp-=dmg; B.stats.lastHit=src;
   fx(x??m.x, y??m.y, `<span class="text-2xl text-red-300 drop-shadow">-${dmg}</span>`);
   shake(); sfx(dmg>=4?'bigHit':'hit'); vibrate(20);
@@ -186,40 +187,40 @@ export async function playCard(i){
   B.undo=[];
   if(card.isItem){
     switch(card.id){
-      case 'potion': { const n=w==='sns'?4:3; h.hp=Math.min(h.maxHp,h.hp+n); fx(h.x,h.y,`<span class="text-xl text-green-300">+${n}</span>`); log(`🌿 ${hName(h)} 喝下回復藥 +${n} HP`); sfx('heal'); break; }
-      case 'meat': { const n=w==='sns'?3:2; h.move+=n; log(`🍖 ${hName(h)} 吃下烤肉 +${n} 步`); sfx('item'); break; }
-      case 'dash': h.move+=1; h.dashBuff=1; log(`🧪 ${hName(h)} 喝下強走藥：本回合與下回合各 +1 步`); sfx('item'); break;
-      case 'cure': h.st=newStatus(); h.hp=Math.min(h.maxHp,h.hp+1); fx(h.x,h.y,'<span class="text-xl text-green-300">✚</span>'); log(`💊 ${hName(h)} 使用活力劑，解除所有異常並回復 1 HP`); sfx('heal'); break;
+      case 'potion': { const n=w==='sns'?4:3; h.hp=Math.min(h.maxHp,h.hp+n); fx(h.x,h.y,`<span class="text-xl text-green-300">+${n}</span>`); log(`${ic('potion','text-green-300')} ${hName(h)} 喝下回復藥 +${n} HP`); sfx('heal'); break; }
+      case 'meat': { const n=w==='sns'?3:2; h.move+=n; log(`${ic('meat','text-orange-300')} ${hName(h)} 吃下烤肉 +${n} 步`); sfx('item'); break; }
+      case 'dash': h.move+=1; h.dashBuff=1; log(`${ic('flask','text-lime-300')} ${hName(h)} 喝下強走藥：本回合與下回合各 +1 步`); sfx('item'); break;
+      case 'cure': h.st=newStatus(); h.hp=Math.min(h.maxHp,h.hp+1); fx(h.x,h.y,`<span class="text-2xl text-green-300">${ic('heal')}</span>`); log(`${ic('pill','text-green-300')} ${hName(h)} 使用活力劑，解除所有異常並回復 1 HP`); sfx('heal'); break;
       case 'flash':
         m.blinded=true; B.danger=[];
-        if(m.fly>0){ m.fly=0; log(`⚡ 閃光彈把 ${m.name} 打了下來！`,true); }
-        log(`⚡ 閃光彈！${m.name} 本回合的攻擊被取消（仍會移動）`,true); sfx('item'); break;
-      case 'cannon': hitMonster(4,'cannon'); log(`🎯 ${hName(h)} 發射龍擊炮！4 傷`,true); break;
+        if(m.fly>0){ m.fly=0; log(`${ic('flash','text-yellow-200')} 閃光彈把 ${m.name} 打了下來！`,true); }
+        log(`${ic('flash','text-yellow-200')} 閃光彈！${m.name} 本回合的攻擊被取消（仍會移動）`,true); sfx('item'); break;
+      case 'cannon': hitMonster(4,'cannon'); log(`${ic('cannon','text-amber-300')} ${hName(h)} 發射龍擊炮！4 傷`,true); break;
       case 'trap': case 'shock': case 'bomb':
         B.placement={type:card.id, idx:i}; toast('點擊相鄰空格放置'); render(); return;
     }
     removeFromHand(i,true); emit('play',{card}); render(); checkEnd(); return;
   }
-  if(card.id==='knife'){ hitMonster(1,'knife'); log(`🔪 ${hName(h)} 投出小刀 1 傷`); removeFromHand(i); emit('play',{card}); render(); checkEnd(); return; }
+  if(card.id==='knife'){ hitMonster(1,'knife'); log(`${ic('knife','text-gray-300')} ${hName(h)} 投出小刀 1 傷`); removeFromHand(i); emit('play',{card}); render(); checkEnd(); return; }
   if(card.type==='skill'){
     h.move-=1;
-    if(w==='gs'){ hitMonster(h.skillDmg); log(`💥 ${hName(h)} 發動【真・蓄力斬】${h.skillDmg} 傷！`,true); }
-    else if(w==='sns'){ hitMonster(h.skillDmg); let extra=''; if(!h.comboUsed){ h.comboUsed=true; h.move+=1; extra='，連段回 1 步'; } log(`⚔️ ${hName(h)} 發動【鬼人連斬】${h.skillDmg} 傷${extra}`); }
-    else if(w==='lance'){ const L=lanceLanding(h); if(L.steps){ h.x=L.x; h.y=L.y; } hitMonster(h.skillDmg); log(`🔱 ${hName(h)} ${L.steps?`突進 ${L.steps} 格，`:''}刺出 ${h.skillDmg} 傷`); }
+    if(w==='gs'){ hitMonster(h.skillDmg); log(`${ic('gs','text-amber-300')} ${hName(h)} 發動【真・蓄力斬】${h.skillDmg} 傷！`,true); }
+    else if(w==='sns'){ hitMonster(h.skillDmg); let extra=''; if(!h.comboUsed){ h.comboUsed=true; h.move+=1; extra='，連段回 1 步'; } log(`${ic('sns','text-amber-300')} ${hName(h)} 發動【鬼人連斬】${h.skillDmg} 傷${extra}`); }
+    else if(w==='lance'){ const L=lanceLanding(h); if(L.steps){ h.x=L.x; h.y=L.y; } hitMonster(h.skillDmg); log(`${ic('lance','text-amber-300')} ${hName(h)} ${L.steps?`突進 ${L.steps} 格，`:''}刺出 ${h.skillDmg} 傷`); }
     else if(w==='hammer'){
-      hitMonster(h.skillDmg); log(`🔨 ${hName(h)} 發動【蓄力迴旋】${h.skillDmg} 傷`);
+      hitMonster(h.skillDmg); log(`${ic('hammer','text-amber-300')} ${hName(h)} 發動【蓄力迴旋】${h.skillDmg} 傷`);
       if(monAlive()){
         if(m.dizzyImmune>0) log(`${m.name} 還在暈眩抗性中，沒有暈倒`);
-        else { m.dizzy=true; B.danger=[]; m.px=m.x; m.py=m.y; log(`💫 ${m.name} 暈眩了！下回合不會移動也不會攻擊`,true); }
+        else { m.dizzy=true; B.danger=[]; m.px=m.x; m.py=m.y; log(`${ic('dizzy','text-yellow-200')} ${m.name} 暈眩了！下回合不會移動也不會攻擊`,true); }
       }
     }
-    else if(w==='ls'){ const dmg=h.skillDmg+h.spirit; hitMonster(dmg); log(`⚔️ ${hName(h)} 發動【氣刃斬】${dmg} 傷（練氣 ${h.spirit}）`,true); h.spirit=0; }
+    else if(w==='ls'){ const dmg=h.skillDmg+h.spirit; hitMonster(dmg); log(`${ic('ls','text-amber-300')} ${hName(h)} 發動【氣刃斬】${dmg} 傷（練氣 ${h.spirit}）`,true); h.spirit=0; }
     removeFromHand(i); emit('play',{card}); render(); checkEnd(); return;
   }
   if(card.type==='attack'){
     let dmg = h.atk + (card.id==='heavy'?1:0);
     if(w==='hammer' && m.dizzy) dmg+=1;
-    hitMonster(dmg); log(`⚔️ ${hName(h)} 打出 [${card.name}] ${dmg} 傷`);
+    hitMonster(dmg); log(`${ic('slash','text-red-300')} ${hName(h)} 打出 [${card.name}] ${dmg} 傷`);
     if(w==='ls' && h.spirit<3){ h.spirit++; }
     removeFromHand(i); emit('play',{card}); render(); checkEnd();
   }
@@ -236,7 +237,7 @@ export async function clickCell(x,y){
       if(!allowed('place',{x,y,type:B.placement.type})) return;
       const t=B.placement.type;
       if(t==='bomb') B.bombs.push({x,y}); else B.traps.push({x,y,type:t});
-      log(`📍 ${hName(h)} 佈置了${t==='trap'?'落穴陷阱':t==='shock'?'麻痺陷阱':'大爆彈桶'}`);
+      log(`${ic('pin','text-amber-300')} ${hName(h)} 佈置了${t==='trap'?'落穴陷阱':t==='shock'?'麻痺陷阱':'大爆彈桶'}`);
       const card=B.hand[B.placement.idx];
       removeFromHand(B.placement.idx,true); B.placement=null; sfx('item');
       emit('play',{card}); render();
@@ -247,7 +248,7 @@ export async function clickCell(x,y){
     if(h.move<1) return toast('點燃需要 1 步');
     if(!allowed('ignite',{x,y})) return;
     h.move-=1; B.undo=[];
-    log(`🧨 ${hName(h)} 耗 1 步遠程點燃爆彈桶！`);
+    log(`${ic('fire','text-orange-400')} ${hName(h)} 耗 1 步遠程點燃爆彈桶！`);
     await triggerBomb(x,y); return;
   }
   if(x===h.x && y===h.y){ if(B.gathers.some(g=>g.x===x&&g.y===y)) gatherHere(); return; }
@@ -262,16 +263,16 @@ export async function clickCell(x,y){
 async function triggerBomb(cx,cy,skipMonster=false){
   const wasProcessing=B.processing; B.processing=true;
   const idx=B.bombs.findIndex(b=>b.x===cx&&b.y===cy); if(idx!==-1) B.bombs.splice(idx,1);
-  render(); fx(cx,cy,'<span class="text-4xl">💥</span>'); getNeighbors(cx,cy).forEach(n=>fx(n.x,n.y,'<span class="text-2xl opacity-80">🔥</span>'));
+  render(); fx(cx,cy,`<span class="text-5xl text-orange-400">${ic('explosion')}</span>`); getNeighbors(cx,cy).forEach(n=>fx(n.x,n.y,`<span class="text-3xl text-orange-500 opacity-80">${ic('fire')}</span>`));
   shake(); sfx('boom'); vibrate(60);
   await wait(350);
   const m=B.mon;
   if(monAlive() && !skipMonster && getDistance(m.x,m.y,cx,cy)<=1){
-    if(m.fly>0) log(`🕊️ ${m.name} 在空中，爆炸沒炸到牠`);
-    else { hitMonster(4,'bomb'); log(`💥 ${m.name} 被炸彈波及 4 傷！`); }
+    if(m.fly>0) log(`${ic('wing','text-sky-300')} ${m.name} 在空中，爆炸沒炸到牠`);
+    else { hitMonster(4,'bomb'); log(`${ic('explosion','text-orange-400')} ${m.name} 被炸彈波及 4 傷！`); }
   }
-  for(const h of B.hunters) if(alive(h) && !h.safe && getDistance(h.x,h.y,cx,cy)<=1){ log(`⚠️ ${hName(h)} 在爆炸範圍內！`); await damageHunter(h,4,'大爆彈桶爆炸'); }
-  for(const cb of B.bombs.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){ log('⛓️ 連環爆炸！'); await triggerBomb(cb.x,cb.y,skipMonster); }
+  for(const h of B.hunters) if(alive(h) && !h.safe && getDistance(h.x,h.y,cx,cy)<=1){ log(`${ic('hazard','text-amber-300')} ${hName(h)} 在爆炸範圍內！`); await damageHunter(h,4,'大爆彈桶爆炸'); }
+  for(const cb of B.bombs.filter(b=>getDistance(b.x,b.y,cx,cy)<=1)){ log(`${ic('chain','text-orange-400')} 連環爆炸！`); await triggerBomb(cb.x,cb.y,skipMonster); }
   render(); checkEnd(); B.processing=wasProcessing;
 }
 
@@ -281,18 +282,18 @@ export async function damageHunter(h, dmg, src){
   const dI=B.hand.findIndex(c=>c.id==='dodge'), sI=B.hand.findIndex(c=>c.id==='shield');
   let taken=dmg, dodged=false, choice='take';
   const shieldCut = h.weapon.id==='gs'?3:2;
-  if(dI===-1 && sI===-1) log(`🩸 ${hName(h)} 無防禦手段，受到 ${dmg} 傷`);
+  if(dI===-1 && sI===-1) log(`${ic('heartbreak','text-red-400')} ${hName(h)} 無防禦手段，受到 ${dmg} 傷`);
   else {
     choice = H.defend ? await H.defend(h,dmg,src,{dodge:dI!==-1, shield:sI!==-1, shieldCut}) : 'take';
     if(choice==='dodge'){
       taken=0; dodged=true; removeFromHand(B.hand.findIndex(c=>c.id==='dodge')); sfx('dodge');
-      log(`💨 ${hName(h)} 翻滾迴避，完美閃躲！`);
-      if(h.weapon.id==='ls' && monAlive() && distToMon(h)<=1){ hitMonster(2,'weapon'); log(`⚔️ ${hName(h)} 見切反擊 2 傷！`); }
+      log(`${ic('dodge','text-sky-300')} ${hName(h)} 翻滾迴避，完美閃躲！`);
+      if(h.weapon.id==='ls' && monAlive() && distToMon(h)<=1){ hitMonster(2,'weapon'); log(`${ic('ls','text-amber-300')} ${hName(h)} 見切反擊 2 傷！`); }
     } else if(choice==='shield'){
       taken=Math.max(0,dmg-shieldCut); removeFromHand(B.hand.findIndex(c=>c.id==='shield'));
-      log(`🛡️ ${hName(h)} 舉盾，受到 ${taken} 傷`);
-      if(h.weapon.id==='lance' && monAlive() && distToMon(h)<=1){ hitMonster(1,'weapon'); log(`🔱 ${hName(h)} 盾擊反擊 1 傷`); }
-    } else log(`🩸 ${hName(h)} 硬扛 ${dmg} 傷`);
+      log(`${ic('shield','text-sky-300')} ${hName(h)} 舉盾，受到 ${taken} 傷`);
+      if(h.weapon.id==='lance' && monAlive() && distToMon(h)<=1){ hitMonster(1,'weapon'); log(`${ic('lance','text-amber-300')} ${hName(h)} 盾擊反擊 1 傷`); }
+    } else log(`${ic('heartbreak','text-red-400')} ${hName(h)} 硬扛 ${dmg} 傷`);
   }
   h.hp-=taken; B.stats.damageTaken+=taken;
   if(taken>0){ fx(h.x,h.y,`<span class="text-xl text-red-400">-${taken}</span>`); sfx('hurt'); vibrate(80); }
@@ -304,14 +305,14 @@ export async function damageHunter(h, dmg, src){
 function pushHunter(h){
   const m=B.mon; let best=null, bd=getDistance(h.x,h.y,m.x,m.y);
   getNeighbors(h.x,h.y).forEach(n=>{ if(isOccupied(n.x,n.y)) return; const d=getDistance(n.x,n.y,m.x,m.y); if(d>bd){bd=d;best=n;} });
-  if(best){ h.x=best.x; h.y=best.y; log(`💨 ${hName(h)} 被擊退 1 格`); }
+  if(best){ h.x=best.x; h.y=best.y; log(`${ic('push','text-gray-300')} ${hName(h)} 被擊退 1 格`); }
 }
 function applyHitEffects(h, hit){
   if(!hit || !alive(h) || h.safe) return;
   for(const k of hit){
     if(k==='push') pushHunter(h);
-    else if(h.resist===k) log(`🧿 ${hName(h)} 的防具抵抗了${FX[k].label}`);
-    else { h.st[k]=Math.max(h.st[k],FX[k].turns); log(`${FX[k].icon} ${hName(h)} ${FX[k].label}！${FX[k].desc}`); }
+    else if(h.resist===k) log(`${ic('resist','text-cyan-300')} ${hName(h)} 的防具抵抗了${FX[k].label}`);
+    else { h.st[k]=Math.max(h.st[k],FX[k].turns); log(`${ic(FX[k].icon,FX[k].cls)} ${hName(h)} ${FX[k].label}！${FX[k].desc}`); }
   }
 }
 
@@ -320,7 +321,7 @@ function pickWeighted(arr){ let t=arr.reduce((s,a)=>s+a.w,0), r=Math.random()*t;
 function fxSummary(a){
   const parts=[];
   if(a.self) parts.push('自身：'+a.self.map(s=>{const k=s.split(':')[0]; return k==='bombs'?'散布爆彈':k==='detonate'?'引爆全場':k==='heal'?'回復'+s.split(':')[1]:FX[k].label;}).join('、'));
-  if(a.hit&&a.hit.length) parts.push('命中：'+a.hit.map(h=>FX[h].icon+FX[h].label).join('、'));
+  if(a.hit&&a.hit.length) parts.push('命中：'+a.hit.map(h=>ic(FX[h].icon,FX[h].cls)+FX[h].label).join('、'));
   return parts.join('｜');
 }
 export function movePool(m){
@@ -343,7 +344,7 @@ export function planMonsterIntent(){
   }
   m.lastMove=base.name;
   const dmg = base.dmg>0 ? Math.max(1, base.dmg+m.dmgMod+(enraged?1:0)) : 0;
-  m.intent={...base, dmg, name:(enraged?'🔥':'')+base.name, fx:fxSummary(base)};
+  m.intent={...base, dmg, fx:fxSummary(base)};
   const live=B.hunters.filter(alive);
   let target=live[0]||B.hunters[0], minD=999;
   live.forEach(h=>{ const d=getDistance(m.x,m.y,h.x,h.y); if(d<minD){minD=d;target=h;} });
@@ -377,7 +378,7 @@ export function planMonsterIntent(){
     case 'all': dz=cellsWithin(cur.x,cur.y,99); break;
   }
   B.danger=dz.filter(c=>inBounds(c)&&!(c.x===cur.x&&c.y===cur.y));
-  log(`⚠️ ${m.name} 鎖定 ${hName(target)}，準備【${m.intent.name}】：${base.desc}`);
+  log(`${ic('target','text-amber-300')} ${m.name} 鎖定 ${hName(target)}，準備【${m.intent.name}】：${base.desc}`);
 }
 
 /* ---------- 結束回合：魔物行動 ---------- */
@@ -396,18 +397,18 @@ export async function endTurn(){
   for(const h of B.hunters){
     h.move=h.maxMove; h.comboUsed=false; h.safe=false;
     if(!alive(h)) continue;
-    if(h.dashBuff>0){ h.move+=1; h.dashBuff--; log(`🧪 ${hName(h)} 強走藥效果 +1 步`); }
+    if(h.dashBuff>0){ h.move+=1; h.dashBuff--; log(`${ic('flask','text-lime-300')} ${hName(h)} 強走藥效果 +1 步`); }
     const st=h.st;
-    if(st.stun>0){ h.move=0; st.stun--; log(`⚡ ${hName(h)} 麻痺中，本回合無法移動`); }
-    else if(st.slow>0){ h.move=Math.max(0,h.move-1); st.slow--; log(`🐌 ${hName(h)} 減速，本回合 -1 步`); }
-    for(const k of ['poison','burn','bleed']) if(st[k]>0){ st[k]--; h.hp-=1; B.stats.damageTaken+=1; fx(h.x,h.y,'<span class="text-lg text-purple-300">-1</span>'); log(`${FX[k].icon} ${hName(h)} ${FX[k].label}中 -1 HP`); }
+    if(st.stun>0){ h.move=0; st.stun--; log(`${ic('bolt','text-yellow-300')} ${hName(h)} 麻痺中，本回合無法移動`); }
+    else if(st.slow>0){ h.move=Math.max(0,h.move-1); st.slow--; log(`${ic('snail','text-teal-300')} ${hName(h)} 減速，本回合 -1 步`); }
+    for(const k of ['poison','burn','bleed']) if(st[k]>0){ st[k]--; h.hp-=1; B.stats.damageTaken+=1; fx(h.x,h.y,'<span class="text-lg text-purple-300">-1</span>'); log(`${ic(FX[k].icon,FX[k].cls)} ${hName(h)} ${FX[k].label}中 -1 HP`); }
   }
   B.phase='player';
   if(checkEnd()){ B.processing=false; return; }
   if(!alive(curHunter())){ const n=B.hunters.find(alive); if(n) B.cur=n.id; }
   drawCards(B.handSize-B.hand.length);
   planMonsterIntent();
-  const tl=turnsLeft(); if(tl!==null && tl<=3) log(`⏳ 剩下 ${tl} 回合！`,true);
+  const tl=turnsLeft(); if(tl!==null && tl<=3) log(`${ic('hourglass')} 剩下 ${tl} 回合！`,true);
   B.processing=false;
   emit('turnStart');
   render();
@@ -415,28 +416,28 @@ export async function endTurn(){
 async function monsterPhase(m){
   const mAlive = () => !m.done && m.hp>0;
   if(m.px<0){ m.px=m.x; m.py=m.y; }
-  if(m.fly>0){ m.fly=0; log(`🕊️ ${m.name} 降落了`); }
+  if(m.fly>0){ m.fly=0; log(`${ic('wing','text-sky-300')} ${m.name} 降落了`); }
   m.armor=0;
   if(m.dizzy){
-    await banner(`💫 ${m.name} 暈眩中`,'本回合無法行動');
-    log(`💫 ${m.name} 暈眩中，動彈不得！`,true);
+    await banner(`${ic('dizzy','text-yellow-200')} ${m.name} 暈眩中`,'本回合無法行動');
+    log(`${ic('dizzy','text-yellow-200')} ${m.name} 暈眩中，動彈不得！`,true);
     m.dizzy=false; m.dizzyImmune=2;
     return;
   }
   const it=m.intent;
-  if(m.blinded) await banner(`😵 ${m.name} 被閃光致盲`,'攻擊取消，但仍會移動');
-  else if(it) await banner(`🐲 ${it.name}`, it.dmg>0?`${it.dmg} 傷害`:'');
+  if(m.blinded) await banner(`${ic('flash','text-yellow-200')} ${m.name} 被閃光致盲`,'攻擊取消，但仍會移動');
+  else if(it) await banner(`${ic('claw')} ${m.enraged?ic('enrage','text-orange-300')+' ':''}${it.name}`, it.dmg>0?`${it.dmg} 傷害`:'');
   // 推進：撞到站在目的格的獵人
   const ma=offsetToAxial(m.x,m.y), pa=offsetToAxial(m.px,m.py); let pq=pa.q-ma.q, pr=pa.r-ma.r;
   if(Math.abs(pq)>1||Math.abs(pr)>1||Math.abs(pq+pr)>1){ const n=getDistance(m.x,m.y,m.px,m.py); pq=Math.round(pq/n); pr=Math.round(pr/n); }
   if(!pq&&!pr){ pq=1; pr=0; }
   for(const h of B.hunters) if(alive(h) && h.x===m.px && h.y===m.py){
     const a=offsetToAxial(h.x,h.y), np=axialToOffset(a.q+pq,a.r+pr);
-    log(`💥 ${m.name} 推進，將 ${hName(h)} 撞退 1 格！`);
+    log(`${ic('push','text-gray-300')} ${m.name} 推進，將 ${hName(h)} 撞退 1 格！`);
     if(!inBounds(np) || isOccupied(np.x,np.y)){
       const free=getNeighbors(h.x,h.y).filter(n=>!isOccupied(n.x,n.y)&&!(n.x===m.px&&n.y===m.py));
       h.hp-=3; B.stats.damageTaken+=3; fx(h.x,h.y,'<span class="text-xl text-red-400">-3</span>'); sfx('hurt');
-      log(`💥 ${hName(h)} 被撞到邊緣，重摔受到 3 傷（無法防禦）！`,true); shake();
+      log(`${ic('impact','text-red-400')} ${hName(h)} 被撞到邊緣，重摔受到 3 傷（無法防禦）！`,true); shake();
       if(free.length){ const f=free[Math.floor(Math.random()*free.length)]; h.x=f.x; h.y=f.y; }
     } else { h.x=np.x; h.y=np.y; }
   }
@@ -449,33 +450,33 @@ async function monsterPhase(m){
     const t=B.traps.splice(tI,1)[0]; trapped=true;
     if(capturable()){
       m.captured=true; B.stats.captured=true; B.stats.lastHit='trap';
-      fx(m.x,m.y,'<span class="text-3xl">🪤</span>'); sfx('win');
-      log(`🪤 ${m.name} 掉進陷阱，被麻醉捕獲了！`,true);
+      fx(m.x,m.y,`<span class="text-4xl text-emerald-300">${ic('net')}</span>`); sfx('win');
+      log(`${ic('net','text-emerald-300')} ${m.name} 掉進陷阱，被麻醉捕獲了！`,true);
       checkEnd(); return;
     }
     if(t.type==='shock'){
-      log(`🌩️ ${m.name} 踩中麻痺陷阱！攻擊中斷`,true); fx(m.x,m.y,'<span class="text-3xl">🌩️</span>');
+      log(`${ic('shock','text-yellow-300')} ${m.name} 踩中麻痺陷阱！攻擊中斷`,true); fx(m.x,m.y,`<span class="text-4xl text-yellow-300">${ic('shock')}</span>`);
       if(m.dizzyImmune>0) log(`${m.name} 暈眩抗性中，很快掙脫了`);
-      else { m.dizzy=true; log(`💫 ${m.name} 被電得動彈不得，下回合也無法行動`,true); }
-    } else { hitMonster(2,'trap'); log(`🕳️ ${m.name} 踏入落穴陷阱！中斷攻擊並受 2 傷`,true); }
+      else { m.dizzy=true; log(`${ic('dizzy','text-yellow-200')} ${m.name} 被電得動彈不得，下回合也無法行動`,true); }
+    } else { hitMonster(2,'trap'); log(`${ic('trap','text-amber-300')} ${m.name} 踏入落穴陷阱！中斷攻擊並受 2 傷`,true); }
     render(); if(checkEnd()) return;
   }
-  else if(B.bombs.some(b=>b.x===m.x&&b.y===m.y)){ log(`💥 ${m.name} 踩到爆彈桶！`,true); await triggerBomb(m.x,m.y); if(B.over) return; }
+  else if(B.bombs.some(b=>b.x===m.x&&b.y===m.y)){ log(`${ic('barrel','text-orange-400')} ${m.name} 踩到爆彈桶！`,true); await triggerBomb(m.x,m.y); if(B.over) return; }
   if(trapped || !mAlive()){ /* 攻擊被陷阱中斷，或魔物已倒下 */ }
-  else if(m.blinded){ log(`😵 ${m.name} 被閃光致盲，攻擊落空`); }
+  else if(m.blinded){ log(`${ic('flash','text-yellow-200')} ${m.name} 被閃光致盲，攻擊落空`); }
   else if(it){
-    log(`🐲 ${m.name} 使出【${it.name}】！${it.desc}`,true);
-    shake(); sfx('roar'); B.danger.forEach(z=>fx(z.x,z.y,'<span class="text-2xl">💢</span>'));
+    log(`${ic('claw','text-red-300')} ${m.name} 使出【${it.name}】！${it.desc}`,true);
+    shake(); sfx('roar'); B.danger.forEach(z=>fx(z.x,z.y,`<span class="text-3xl text-red-400">${ic('claw')}</span>`));
     for(const s of (it.self||[])){
-      if(s==='fly'){ m.fly=1; log(`🕊️ ${m.name} 飛上天空，下回合近戰無法命中！`); }
-      else if(s==='armor'){ m.armor=1; log(`🛡️ ${m.name} 硬化，下回合受到的傷害 -2`); }
-      else if(s==='enrage'){ m.enraged=true; log(`🔥 ${m.name} 進入永久狂暴！招式傷害 +1`); }
-      else if(s.startsWith('heal:')){ const n=+s.slice(5); m.hp=Math.min(m.maxHp,m.hp+n); fx(m.x,m.y,`<span class="text-2xl text-green-300">+${n}</span>`); log(`💚 ${m.name} 回復 ${n} HP`); }
+      if(s==='fly'){ m.fly=1; log(`${ic('wing','text-sky-300')} ${m.name} 飛上天空，下回合近戰無法命中！`); }
+      else if(s==='armor'){ m.armor=1; log(`${ic('rock','text-stone-300')} ${m.name} 硬化，下回合受到的傷害 -2`); }
+      else if(s==='enrage'){ m.enraged=true; log(`${ic('enrage','text-red-400')} ${m.name} 進入永久狂暴！招式傷害 +1`); }
+      else if(s.startsWith('heal:')){ const n=+s.slice(5); m.hp=Math.min(m.maxHp,m.hp+n); fx(m.x,m.y,`<span class="text-2xl text-green-300">+${n}</span>`); log(`${ic('heal','text-green-300')} ${m.name} 回復 ${n} HP`); }
       else if(s.startsWith('bombs:')){
         const n=+s.slice(6);
         const cells=shuffle(cellsWithin(m.x,m.y,2).filter(c=>!isOccupied(c.x,c.y)&&!hasItemAt(c.x,c.y)&&!B.gathers.some(g=>g.x===c.x&&g.y===c.y))).slice(0,n);
         cells.forEach(c=>B.bombs.push(c));
-        log(`💣 ${m.name} 散布了 ${cells.length} 顆爆彈！可以拿來反炸牠，但小心別站旁邊`);
+        log(`${ic('barrel','text-orange-400')} ${m.name} 散布了 ${cells.length} 顆爆彈！可以拿來反炸牠，但小心別站旁邊`);
       }
       else if(s==='detonate'){
         const list=[...B.bombs]; if(!list.length) log('（地圖上沒有爆彈可引爆）');
@@ -485,12 +486,12 @@ async function monsterPhase(m){
     }
     render();
     const hits=B.danger.filter(z=>B.bombs.some(b=>b.x===z.x&&b.y===z.y));
-    if(hits.length){ log('🔥 攻擊掃到爆彈桶，引爆！',true); for(const z of hits) if(B.bombs.some(b=>b.x===z.x&&b.y===z.y)) await triggerBomb(z.x,z.y); if(B.over) return; }
+    if(hits.length){ log(`${ic('fire','text-orange-400')} 攻擊掃到爆彈桶，引爆！`,true); for(const z of hits) if(B.bombs.some(b=>b.x===z.x&&b.y===z.y)) await triggerBomb(z.x,z.y); if(B.over) return; }
     const zones=B.danger.slice();
     for(const h of B.hunters) if(mAlive() && alive(h) && !h.safe && zones.some(z=>z.x===h.x&&z.y===h.y)){
       let dodged=false;
       if(it.dmg>0){ const r=await damageHunter(h,it.dmg,it.name); dodged=r.dodged; if(B.over) return; }
-      else log(`💢 ${hName(h)} 被【${it.name}】波及`);
+      else log(`${ic('impact','text-red-300')} ${hName(h)} 被【${it.name}】波及`);
       if(!dodged) applyHitEffects(h,it.hit);
     }
   }
@@ -510,8 +511,8 @@ function spawnNext(){
     if(d>bd){bd=d;best={x,y};}
   }
   m.x=best.x; m.y=best.y; B.mon=m; B.danger=[];
-  log(`🚨 ${m.name} 趕到了！`,true); sfx('roar');
-  H.announce && H.announce(`🚨 ${m.name} 登場！`);
+  log(`${ic('bell','text-red-300')} ${m.name} 趕到了！`,true); sfx('roar');
+  H.announce && H.announce(`${ic('bell','text-red-300')} ${m.name} 登場！`);
   emit('spawn',{mon:m});
   if(B.phase!=='monster') planMonsterIntent();
 }
@@ -525,8 +526,8 @@ function respawn(h){
     if(c) pos=c;
   }
   h.x=pos.x; h.y=pos.y;
-  log(`🐱 ${hName(h)} 倒下了！艾路貓把你送回營地（剩 ${left} 次）`,true);
-  H.announce && H.announce(`🐱 貓車！剩 ${left} 次`);
+  log(`${ic('cat','text-amber-300')} ${hName(h)} 倒下了！艾路貓把你送回營地（剩 ${left} 次）`,true);
+  H.announce && H.announce(`${ic('cat')} 貓車！剩 ${left} 次`);
 }
 export function checkEnd(){
   if(B.over) return true;
@@ -534,7 +535,7 @@ export function checkEnd(){
   if(m && !m.done && (m.hp<=0 || m.captured)){
     m.done=true; m.hp=Math.max(0,m.hp);
     B.killed.push({key:m.key, img:m.img, captured:m.captured, turn:B.turn});
-    if(!m.captured) log(`🎉 ${m.name} 被討伐了！`,true);
+    if(!m.captured) log(`${ic('laurel','text-amber-300')} ${m.name} 被討伐了！`,true);
     B.danger=[];
     if(B.cfg.objective==='capture' && !m.captured){ finish(false,'魔物被討伐了……捕獲任務失敗'); return true; }
     if(B.monQueue.length) spawnNext();
@@ -547,7 +548,7 @@ export function checkEnd(){
       B.cartsUsed++;
       if(B.cartsUsed>=B.cfg.carts){ h.hp=0; finish(false,'貓車次數用盡……任務失敗'); return true; }
       respawn(h);
-    } else { h.downHandled=true; h.hp=0; log(`💀 ${hName(h)} 倒下了！`,true); }
+    } else { h.downHandled=true; h.hp=0; log(`${ic('skull','text-red-400')} ${hName(h)} 倒下了！`,true); }
   }
   if(B.cfg.carts==null && B.hunters.every(h=>!alive(h))){ finish(false,'全員倒下……任務失敗'); return true; }
   return false;

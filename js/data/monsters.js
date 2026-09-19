@@ -112,10 +112,10 @@ export const MOVESETS = {
     {name:'黃金粉塵',range:'radius',len:2,dmg:2,hit:['burn'],desc:'抖落熾熱金粉，周圍 2 圈灼燒'}],c:['stomp','roar']},
 };
 export const FX = {
-  slow:{icon:'🐌',label:'減速',turns:1,desc:'下回合 -1 步'},stun:{icon:'⚡',label:'麻痺',turns:1,desc:'下回合無法移動'},
-  poison:{icon:'☠️',label:'中毒',turns:2,desc:'接下來 2 回合各 -1 HP'},burn:{icon:'🔥',label:'灼燒',turns:2,desc:'接下來 2 回合各 -1 HP'},
-  bleed:{icon:'🩸',label:'流血',turns:2,desc:'接下來 2 回合各 -1 HP'},push:{icon:'💨',label:'擊退',turns:0,desc:'被推離魔物 1 格'},
-  fly:{icon:'🕊️',label:'飛行',desc:'下回合近戰打不到'},armor:{icon:'🛡️',label:'硬化',desc:'下回合受傷 -2'},enrage:{icon:'🔥',label:'狂暴',desc:'永久傷害 +1'},
+  slow:{icon:'snail',cls:'text-teal-300',label:'減速',turns:1,desc:'下回合 -1 步'},stun:{icon:'bolt',cls:'text-yellow-300',label:'麻痺',turns:1,desc:'下回合無法移動'},
+  poison:{icon:'poison',cls:'text-purple-300',label:'中毒',turns:2,desc:'接下來 2 回合各 -1 HP'},burn:{icon:'fire',cls:'text-orange-400',label:'灼燒',turns:2,desc:'接下來 2 回合各 -1 HP'},
+  bleed:{icon:'bleed',cls:'text-red-400',label:'流血',turns:2,desc:'接下來 2 回合各 -1 HP'},push:{icon:'push',cls:'text-gray-300',label:'擊退',turns:0,desc:'被推離魔物 1 格'},
+  fly:{icon:'wing',cls:'text-sky-300',label:'飛行',desc:'下回合近戰打不到'},armor:{icon:'rock',cls:'text-stone-300',label:'硬化',desc:'下回合受傷 -2'},enrage:{icon:'enrage',cls:'text-red-400',label:'狂暴',desc:'永久傷害 +1'},
 };
 export const movesetOf=file=>MOVESETS[file.slice(0,8)];
 
@@ -123,4 +123,4 @@ export const movesetOf=file=>MOVESETS[file.slice(0,8)];
 export const SOLO_HP = {1:18,2:26,3:36};
 export const monsterByKey = key => MONSTERS.find(m=>m.f.startsWith(key));
 export const monsterKey = m => m.f.slice(0,8);
-FX.dizzy = {icon:'💫',label:'暈眩',desc:'下回合無法移動與攻擊'};
+FX.dizzy = {icon:'dizzy',cls:'text-yellow-200',label:'暈眩',desc:'下回合無法移動與攻擊'};

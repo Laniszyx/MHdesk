@@ -1,20 +1,20 @@
-/* 卡牌資料。type: attack / skill / defend / item。isItem = 消耗品（打出後本場移除） */
+/* 卡牌資料。type: attack / skill / defend / item。isItem = 消耗品（打出後本場移除）。glyph = 圖示名稱（見 js/icons.js） */
 export const CARDS_DB = {
-  basic:{id:'basic',type:'attack',isItem:false,name:'基礎斬擊',glyph:'⚔️'},
-  heavy:{id:'heavy',type:'attack',isItem:false,name:'重擊',glyph:'💢'},
-  skill:{id:'skill',type:'skill',isItem:false,name:'職業技能',glyph:'✨'},
-  dodge:{id:'dodge',type:'defend',isItem:false,name:'翻滾迴避',glyph:'💨'},
-  shield:{id:'shield',type:'defend',isItem:false,name:'舉盾掩護',glyph:'🛡️'},
-  knife:{id:'knife',type:'attack',isItem:false,name:'投擲小刀',glyph:'🔪',ranged:2},
-  potion:{id:'potion',type:'item',isItem:true,name:'回復藥',glyph:'🌿'},
-  meat:{id:'meat',type:'item',isItem:true,name:'烤肉',glyph:'🍖'},
-  flash:{id:'flash',type:'item',isItem:true,name:'閃光彈',glyph:'⚡'},
-  trap:{id:'trap',type:'item',isItem:true,name:'落穴陷阱',glyph:'🕳️',place:true},
-  shock:{id:'shock',type:'item',isItem:true,name:'麻痺陷阱',glyph:'🌩️',place:true},
-  bomb:{id:'bomb',type:'item',isItem:true,name:'大爆彈桶',glyph:'💣',place:true},
-  dash:{id:'dash',type:'item',isItem:true,name:'強走藥',glyph:'🧪'},
-  cure:{id:'cure',type:'item',isItem:true,name:'活力劑',glyph:'💊'},
-  cannon:{id:'cannon',type:'item',isItem:true,name:'龍擊炮',glyph:'🎯',ranged:3},
+  basic:{id:'basic',type:'attack',isItem:false,name:'基礎斬擊',glyph:'slash'},
+  heavy:{id:'heavy',type:'attack',isItem:false,name:'重擊',glyph:'impact'},
+  skill:{id:'skill',type:'skill',isItem:false,name:'職業技能',glyph:'spin'},
+  dodge:{id:'dodge',type:'defend',isItem:false,name:'翻滾迴避',glyph:'dodge'},
+  shield:{id:'shield',type:'defend',isItem:false,name:'舉盾掩護',glyph:'shield'},
+  knife:{id:'knife',type:'attack',isItem:false,name:'投擲小刀',glyph:'knife',ranged:2},
+  potion:{id:'potion',type:'item',isItem:true,name:'回復藥',glyph:'potion'},
+  meat:{id:'meat',type:'item',isItem:true,name:'烤肉',glyph:'meat'},
+  flash:{id:'flash',type:'item',isItem:true,name:'閃光彈',glyph:'flash'},
+  trap:{id:'trap',type:'item',isItem:true,name:'落穴陷阱',glyph:'trap',place:true},
+  shock:{id:'shock',type:'item',isItem:true,name:'麻痺陷阱',glyph:'shock',place:true},
+  bomb:{id:'bomb',type:'item',isItem:true,name:'大爆彈桶',glyph:'barrel',place:true},
+  dash:{id:'dash',type:'item',isItem:true,name:'強走藥',glyph:'flask'},
+  cure:{id:'cure',type:'item',isItem:true,name:'活力劑',glyph:'pill'},
+  cannon:{id:'cannon',type:'item',isItem:true,name:'龍擊炮',glyph:'cannon',ranged:3},
 };
 export const CARD_ORDER = Object.keys(CARDS_DB);
 

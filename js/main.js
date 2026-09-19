@@ -21,7 +21,7 @@ document.body.classList.toggle('fs-lg', S.settings.font==='lg');
 window.__mh = {S, E, B, launchBattle, setInstant, hex, CARDS_DB, story:storyDebug, tutState};
 const hash = location.hash.replace('#','');
 if(hash==='quick' || hash==='quick1'){
-  launchBattle({mode:'free', hunters:hash==='quick1'?[{name:'大劍',icon:'🗡️',weapon:'gs'}]:[{name:'大劍',icon:'🗡️',weapon:'gs'},{name:'片手劍',icon:'🛡️',weapon:'sns'}],
+  launchBattle({mode:'free', hunters:hash==='quick1'?[{name:'大劍',icon:'knight',weapon:'gs'}]:[{name:'大劍',icon:'knight',weapon:'gs'},{name:'片手劍',icon:'spartan',weapon:'sns'}],
     deck:Object.entries({basic:5,heavy:4,skill:3,dodge:4,shield:4,potion:3,meat:2,flash:1,trap:2,bomb:2}).flatMap(([k,n])=>Array(n).fill(k)),
     mons:[{key:'image001'}], carts:hash==='quick1'?3:null, objective:'hunt'}, {title:'測試'});
 }

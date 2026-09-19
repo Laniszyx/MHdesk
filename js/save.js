@@ -5,6 +5,7 @@
    mhdesk_free_v1     自由對戰上次的設定 */
 import { MONSTERS } from './data/monsters.js';
 import { startingOwned } from './data/crafting.js';
+import { avatarId } from './icons.js';
 
 const KEYS = {records:'mhdesk_save_v1', story:'mhdesk_story_v1', settings:'mhdesk_settings_v1', free:'mhdesk_free_v1'};
 const read = k => { try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } };
@@ -18,22 +19,22 @@ export const saveRecords = () => write(KEYS.records, records);
 
 const speciesWon = s => Object.values(s.hunts).filter(h=>h.wins>0).length;
 export const ACH = [
-  {id:'first_win',icon:'🎯',name:'初次狩獵',desc:'首次討伐成功',test:s=>s.totals.wins>=1},
-  {id:'win5',icon:'🗡️',name:'老練獵人',desc:'累計討伐 5 次',test:s=>s.totals.wins>=5},
-  {id:'win20',icon:'⚔️',name:'狩獵狂',desc:'累計討伐 20 次',test:s=>s.totals.wins>=20},
-  {id:'species10',icon:'📖',name:'圖鑑收集家',desc:'討伐 10 種不同魔物',test:s=>speciesWon(s)>=10},
-  {id:'species_all',icon:'👑',name:'傳說獵人',desc:'34 種魔物全部討伐',test:s=>speciesWon(s)>=MONSTERS.length},
-  {id:'elder',icon:'🐉',name:'古龍討伐者',desc:'討伐任一 ★★★ 魔物',test:s=>MONSTERS.some(m=>m.t===3&&(s.hunts[m.f]||{}).wins>0)},
-  {id:'elder_all',icon:'🌌',name:'古龍終結者',desc:'所有 ★★★ 魔物皆討伐',test:s=>MONSTERS.filter(m=>m.t===3).every(m=>(s.hunts[m.f]||{}).wins>0)},
-  {id:'no_damage',icon:'✨',name:'完美狩獵',desc:'一場零受傷討伐',test:(s,g)=>g&&g.win&&g.damageTaken===0},
-  {id:'fast',icon:'⚡',name:'速攻',desc:'5 回合內討伐',test:(s,g)=>g&&g.win&&g.turns<=5},
-  {id:'bomb_kill',icon:'💣',name:'爆破專家',desc:'用爆彈桶完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='bomb'},
-  {id:'trap_kill',icon:'🕳️',name:'陷阱大師',desc:'用落穴陷阱完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='trap'},
-  {id:'comeback',icon:'🔥',name:'絕地反攻',desc:'有獵人倒下後仍討伐成功',test:(s,g)=>g&&g.win&&g.downed},
-  {id:'capture1',icon:'🪤',name:'捕獲名人',desc:'首次捕獲魔物',test:(s,g)=>g&&g.win&&g.captured},
-  {id:'story_ch1',icon:'🌳',name:'森林的守護者',desc:'劇情模式完成第一章',test:()=>storyChapterDone(1)},
-  {id:'story_end',icon:'🌅',name:'新大陸的英雄',desc:'劇情模式討伐絢輝龍',test:()=>!!(story&&story.cleared['q5-U'])},
-  {id:'forge_max',icon:'🔨',name:'名匠之作',desc:'把任一武器強化到 Lv4',test:()=>!!(story&&Object.values(story.weapons).some(l=>l>=4))},
+  {id:'first_win',icon:'target',name:'初次狩獵',desc:'首次討伐成功',test:s=>s.totals.wins>=1},
+  {id:'win5',icon:'swords',name:'老練獵人',desc:'累計討伐 5 次',test:s=>s.totals.wins>=5},
+  {id:'win20',icon:'sabres',name:'狩獵狂',desc:'累計討伐 20 次',test:s=>s.totals.wins>=20},
+  {id:'species10',icon:'book',name:'圖鑑收集家',desc:'討伐 10 種不同魔物',test:s=>speciesWon(s)>=10},
+  {id:'species_all',icon:'crown',name:'傳說獵人',desc:'34 種魔物全部討伐',test:s=>speciesWon(s)>=MONSTERS.length},
+  {id:'elder',icon:'dragon',name:'古龍討伐者',desc:'討伐任一 ★★★ 魔物',test:s=>MONSTERS.some(m=>m.t===3&&(s.hunts[m.f]||{}).wins>0)},
+  {id:'elder_all',icon:'dragon2',name:'古龍終結者',desc:'所有 ★★★ 魔物皆討伐',test:s=>MONSTERS.filter(m=>m.t===3).every(m=>(s.hunts[m.f]||{}).wins>0)},
+  {id:'no_damage',icon:'wings',name:'完美狩獵',desc:'一場零受傷討伐',test:(s,g)=>g&&g.win&&g.damageTaken===0},
+  {id:'fast',icon:'stopwatch',name:'速攻',desc:'5 回合內討伐',test:(s,g)=>g&&g.win&&g.turns<=5},
+  {id:'bomb_kill',icon:'barrel',name:'爆破專家',desc:'用爆彈桶完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='bomb'},
+  {id:'trap_kill',icon:'trap',name:'陷阱大師',desc:'用落穴陷阱完成最後一擊',test:(s,g)=>g&&g.win&&g.lastHit==='trap'},
+  {id:'comeback',icon:'embers',name:'絕地反攻',desc:'有獵人倒下後仍討伐成功',test:(s,g)=>g&&g.win&&g.downed},
+  {id:'capture1',icon:'net',name:'捕獲名人',desc:'首次捕獲魔物',test:(s,g)=>g&&g.win&&g.captured},
+  {id:'story_ch1',icon:'pine',name:'森林的守護者',desc:'劇情模式完成第一章',test:()=>storyChapterDone(1)},
+  {id:'story_end',icon:'sunrise',name:'新大陸的英雄',desc:'劇情模式討伐絢輝龍',test:()=>!!(story&&story.cleared['q5-U'])},
+  {id:'forge_max',icon:'anvil',name:'名匠之作',desc:'把任一武器強化到 Lv4',test:()=>!!(story&&Object.values(story.weapons).some(l=>l>=4))},
 ];
 const storyChapterDone = ch => !!(story && story.cleared['q'+ch+'-U']);
 /* 記錄一隻魔物的勝敗並檢查成就。回傳新解鎖的成就 */
@@ -63,7 +64,7 @@ export const saveSettings = () => write(KEYS.settings, settings);
 export const STORY_VERSION = 1;
 export function newStory(hunter){
   const owned = startingOwned();
-  return {v:STORY_VERSION, created:Date.now(), hunter:{name:hunter.name||'獵人', icon:hunter.icon||'🧑', weapon:hunter.weapon||'gs'},
+  return {v:STORY_VERSION, created:Date.now(), hunter:{name:hunter.name||'獵人', icon:avatarId(hunter.icon), weapon:hunter.weapon||'gs'},
     exp:0, cleared:{}, tutorialDone:false, mats:{},
     weapons:{gs:1,sns:1,lance:1,hammer:1,ls:1}, armor:{lv:1,resist:null},
     owned, deck:{...owned}, lastQuest:null};
@@ -73,6 +74,7 @@ function migrateStory(s){
   /* 未來改版時在這裡補欄位 */
   s.v = STORY_VERSION;
   s.mats = s.mats||{}; s.cleared = s.cleared||{};
+  s.hunter.icon = avatarId(s.hunter.icon);
   s.weapons = {gs:1,sns:1,lance:1,hammer:1,ls:1, ...(s.weapons||{})};
   s.armor = s.armor||{lv:1,resist:null};
   s.owned = {...startingOwned(), ...(s.owned||{})};

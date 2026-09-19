@@ -6,24 +6,24 @@ import * as S from '../save.js';
 import { play as sfx } from '../audio.js';
 import { $, on, esc, page, modal, closeModal } from './dom.js';
 import { launchBattle } from './battle-view.js';
-import { go, registerNav } from './menu.js';
+import { go, registerNav, menuBtn } from './menu.js';
+import { icon, avatar, avatarId, AVATARS } from '../icons.js';
 
-const ICONS = ['🗡️','🛡️','🔱','🔨','⚔️','🏹','🐱','🦊','🐺','🐉','🔥','⭐','🧑','👧','🧔','👩'];
-const defaultCfg = () => ({count:2, hunters:[{name:'獵人一',icon:'🗡️',weapon:'gs'},{name:'獵人二',icon:'🛡️',weapon:'sns'}], monster:0, deck:{...DECK_PRESETS.balanced.counts}, tierTab:0});
+const defaultCfg = () => ({count:2, hunters:[{name:'獵人一',icon:'knight',weapon:'gs'},{name:'獵人二',icon:'spartan',weapon:'sns'}], monster:0, deck:{...DECK_PRESETS.balanced.counts}, tierTab:0});
 let F = null, step = 1;
 
 export function freeEntry(){
   F = JSON.parse(JSON.stringify(S.freeCfg || defaultCfg()));
   F.deck = {...Object.fromEntries(CARD_ORDER.map(k=>[k,0])), ...F.deck};
+  F.hunters.forEach(h=>{ h.icon=avatarId(h.icon); });
   if(!S.freeCfg){ step=1; return freeSetup(); }
   const m=MONSTERS[F.monster]||MONSTERS[0];
-  page({title:'⚔️ 自由對戰', back:'go-menu', body:`
+  page({title:'自由對戰', icon:'swords', back:'go-menu', body:`
     <div class="space-y-3 pt-2">
-      <button data-act="free-quick" class="menu-btn main"><span class="mi">⚡</span><span class="flex-1 min-w-0"><span class="block font-black">快速開始</span>
-        <span class="block text-[11px] text-gray-300">沿用上次：${F.hunters.slice(0,F.count).map(h=>esc(h.name)+'（'+WEAPONS[h.weapon].name+'）').join('、')}</span>
-        <span class="block text-[11px] text-gray-400">目標：${m.n}・牌組 ${deckTotal(F.deck)} 張</span></span></button>
-      <button data-act="free-quick" data-random="1" class="menu-btn"><span class="mi">🎲</span><span class="flex-1"><span class="block font-black">快速開始・隨機魔物</span><span class="block text-[11px] text-gray-400">獵人和牌組沿用上次</span></span></button>
-      <button data-act="free-custom" class="menu-btn"><span class="mi">🛠️</span><span class="flex-1"><span class="block font-black">自訂</span><span class="block text-[11px] text-gray-400">重新選人數、武器、魔物和牌組</span></span></button>
+      ${menuBtn({act:'free-quick', icon:'sprint', name:'快速開始', main:true,
+        desc:`沿用上次：${F.hunters.slice(0,F.count).map(h=>esc(h.name)+'（'+WEAPONS[h.weapon].name+'）').join('、')}・${m.n}・牌組 ${deckTotal(F.deck)} 張`})}
+      ${menuBtn({act:'free-quick', attrs:'data-random="1"', icon:'dice', name:'快速開始・隨機魔物', desc:'獵人和牌組沿用上次'})}
+      ${menuBtn({act:'free-custom', icon:'spanner', name:'自訂', desc:'重新選人數、武器、魔物和牌組'})}
     </div>`});
 }
 on('go-menu', () => go('menu'));
@@ -39,9 +39,9 @@ function freeSetup(){
   if(step===2) body=stepMonster();
   if(step===3) body=stepDeck();
   const err = step===3 ? validateDeck(F.deck, DECK_RULES.free) : '';
-  footer = `<button data-act="free-step" data-d="-1" class="tap btn-ghost px-4">← ${step===1?'返回':'上一步'}</button>
-    <button data-act="free-step" data-d="1" class="tap btn-primary flex-1 py-3 text-base" ${err?'disabled':''}>${step<3?'下一步 ➔':err?err:'🔥 開始狩獵'}</button>`;
-  page({title:'⚔️ 自由對戰', sub:['','STEP 1・獵人與武器','STEP 2・選擇狩獵目標','STEP 3・構築共用牌組'][step], back:'go-menu', right, body, footer});
+  footer = `<button data-act="free-step" data-d="-1" class="btn btn-lg btn-secondary">${icon('back')}${step===1?'返回':'上一步'}</button>
+    <button data-act="free-step" data-d="1" class="btn btn-lg btn-primary flex-1" ${err?'disabled':''}>${step<3?`下一步${icon('next')}`:err?err:`${icon('swords')}開始狩獵`}</button>`;
+  page({title:'自由對戰', icon:'swords', sub:['','STEP 1・獵人與武器','STEP 2・選擇狩獵目標','STEP 3・構築共用牌組'][step], back:'go-menu', right, body, footer});
   if(step===2) updatePreview();
 }
 on('free-step', d => {
@@ -60,14 +60,14 @@ function stepHunters(){
         <label class="flex-1 min-w-0"><span class="block text-[10px] text-gray-500 mb-0.5">名字</span>
           <input id="fh-name-${i}" value="${esc(h.name)}" maxlength="8" class="w-full bg-black/40 border border-gray-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-amber-400"></label>
         <label class="w-16 shrink-0"><span class="block text-[10px] text-gray-500 mb-0.5">頭像</span>
-          <button data-act="free-icon" data-i="${i}" class="w-full bg-black/40 border border-gray-700 rounded-lg py-1.5 text-xl">${h.icon}</button></label>
+          <button data-act="free-icon" data-i="${i}" class="av-btn" aria-label="換頭像">${avatar(h.icon)}</button></label>
       </div>
-      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="free-weapon" data-i="${i}" data-w="${w}" class="wpn-pick ${h.weapon===w?'sel':''}"><div class="text-xl">${WEAPONS[w].icon}</div><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
+      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="free-weapon" data-i="${i}" data-w="${w}" class="wpn-pick ${h.weapon===w?'sel':''}"><div>${icon(WEAPONS[w].icon)}</div><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
       <div class="text-[10px] text-gray-400 mt-2 leading-snug">${weaponLine(h.weapon)}</div>
     </div>`; };
   return `<div class="space-y-3 pt-1">
-    <div class="panel p-3"><div class="text-[11px] text-gray-400 mb-1.5">人數</div>
-      <div class="seg">${[1,2].map(n=>`<button class="${F.count===n?'on':''}" data-act="free-count" data-n="${n}">${n===1?'👤 單人':'👥 雙人合作'}</button>`).join('')}</div>
+    <div class="panel p-3"><div class="text-[11px] font-bold text-gray-400 mb-1.5">人數</div>
+      <div class="seg">${[1,2].map(n=>`<button class="${F.count===n?'on':''}" data-act="free-count" data-n="${n}">${n===1?icon('user')+'單人':icon('users')+'雙人合作'}</button>`).join('')}</div>
       <div class="text-[10px] text-gray-400 mt-1.5">${F.count===1?'魔物 HP 較低（★18／★★26／★★★36），手牌 4 張，倒下時貓車送回起點（3 次）':'兩人輪流操作、共用手牌 3 張，魔物 HP 較高（★30／★★40／★★★55），全員倒下才失敗'}</div></div>
     ${hunterBox(0)}${F.count===2?hunterBox(1):''}
   </div>`;
@@ -78,21 +78,21 @@ on('free-count', d => { readHunterInputs(); F.count=+d.n; freeSetup(); });
 on('free-weapon', d => { readHunterInputs(); F.hunters[+d.i].weapon=d.w; sfx('tap'); freeSetup(); });
 on('free-icon', async d => {
   readHunterInputs();
-  const v = await modal(`<h2 class="text-lg font-black mb-3">選擇頭像</h2><div class="grid grid-cols-4 gap-2">${ICONS.map(ic=>`<button data-act="pick-icon" data-v="${ic}" class="tap text-2xl panel py-2">${ic}</button>`).join('')}</div>`,[{label:'取消',value:null}],{dismiss:null});
+  const v = await modal(`<h2 class="text-lg font-black mb-3">選擇頭像</h2>${iconPickerHtml(F.hunters[+d.i].icon)}`,[{label:'取消',value:null}],{dismiss:null});
   if(v){ F.hunters[+d.i].icon=v; } freeSetup();
 });
 on('pick-icon', d => closeModal(d.v));
-export const iconPickerHtml = () => `<div class="grid grid-cols-4 gap-2">${ICONS.map(ic=>`<button data-act="pick-icon" data-v="${ic}" class="tap text-2xl panel py-2">${ic}</button>`).join('')}</div>`;
+export const iconPickerHtml = (cur) => `<div class="grid grid-cols-4 gap-2">${AVATARS.map(a=>`<button data-act="pick-icon" data-v="${a}" class="av-pick ${avatarId(cur)===a?'sel':''}">${icon(a)}</button>`).join('')}</div>`;
 
 function stepMonster(){
   const tabs=['全部','★','★★','★★★'];
   const list=MONSTERS.map((m,i)=>({m,i})).filter(o=>!F.tierTab||o.m.t===F.tierTab);
   return `<div class="flex gap-2 items-center my-1">
       <div class="tabs flex-1">${tabs.map((t,i)=>`<button class="${F.tierTab===i?'on':''}" data-act="free-tier" data-t="${i}">${t}</button>`).join('')}</div>
-      <button data-act="free-random" class="tap btn-ghost px-3 text-xs shrink-0">🎲 隨機</button></div>
+      <button data-act="free-random" class="btn btn-sm btn-secondary shrink-0">${icon('dice')}隨機</button></div>
     <div id="mon-preview" class="panel p-3 flex items-center gap-3 my-2"></div>
     <div class="grid grid-cols-4 gap-2">${list.map(({m,i})=>{ const wins=(S.records.hunts[m.f]||{}).wins||0;
-      return `<button data-act="free-mon" data-i="${i}" class="mon-pick ${i===F.monster?'sel':''}"><img src="${m.f}" alt="${m.n}"><span class="tier ${TIER[m.t].cls}">${TIER[m.t].label}</span>${wins?`<span class="tier bg-green-600 text-white" style="right:auto;left:4px;top:auto;bottom:4px">✓${wins}</span>`:''}</button>`; }).join('')}</div>`;
+      return `<button data-act="free-mon" data-i="${i}" class="mon-pick ${i===F.monster?'sel':''}"><img src="${m.f}" alt="${m.n}"><span class="tier ${TIER[m.t].cls}">${TIER[m.t].label}</span>${wins?`<span class="tier bg-green-600 text-white inline-flex items-center" style="right:auto;left:4px;top:auto;bottom:4px">${icon('check')}${wins}</span>`:''}</button>`; }).join('')}</div>`;
 }
 function updatePreview(){
   const m=MONSTERS[F.monster], t=TIER[m.t], hp=F.count===1?SOLO_HP[m.t]:t.hp;
@@ -111,7 +111,7 @@ function stepDeck(){
       <div><div class="text-[10px] text-gray-400">總牌數</div><div class="font-black text-lg">${t}<span class="text-gray-500 text-xs">/30</span></div></div>
       <div><div class="text-[10px] text-gray-400">道具卡</div><div class="font-black text-lg">${it}<span class="text-gray-500 text-xs">/10</span></div></div>
       <div class="text-[11px] text-red-400 font-bold w-28">${err}</div></div>
-    <div class="text-[11px] text-gray-400 mt-2 mb-1">預設牌組</div>
+    <div class="sec">預設牌組</div>
     <div class="grid grid-cols-3 gap-2 mb-3">${Object.entries(DECK_PRESETS).map(([k,p])=>`<button data-act="free-preset" data-k="${k}" class="panel p-2 text-left"><div class="text-xs font-black">${p.name}</div><div class="text-[9px] text-gray-400 leading-tight">${p.desc}</div></button>`).join('')}</div>
     ${deckListHtml(F.deck, 'free-adj', null, F.count===1?F.hunters[0]:null)}`;
 }
@@ -120,12 +120,12 @@ export function deckListHtml(counts, act, limits, hunterSpec){
   const h = hunterSpec ? {weapon:WEAPONS[hunterSpec.weapon], atk:WEAPONS[hunterSpec.weapon].atk+((hunterSpec.wlv||1)-1), skillDmg:WEAPONS[hunterSpec.weapon].skill.dmg+((hunterSpec.wlv||1)-1)} : null;
   return `<div class="space-y-2">${CARD_ORDER.filter(id=>!limits||limits[id]>0).map(id=>{ const c=CARDS_DB[id], n=counts[id]||0, lim=limits?limits[id]:null;
     return `<div class="panel p-2 flex items-center gap-2">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center text-lg card ${c.type} !p-0" style="flex:0 0 36px">${c.glyph}</div>
+      <div class="card-ic ${c.type}">${icon(c.glyph)}</div>
       <div class="flex-1 min-w-0"><div class="text-sm font-bold">${id==='skill'&&h?h.weapon.skill.name:c.name} ${c.isItem?'<span class="text-[9px] bg-amber-900 text-amber-300 px-1 rounded">道具</span>':''}${lim!=null?`<span class="text-[9px] text-gray-500 ml-1">持有 ${lim}</span>`:''}</div><div class="text-[10px] text-gray-400 leading-tight">${cardDesc(c,h)}</div></div>
       <div class="flex items-center gap-1 shrink-0">
-        <button data-act="${act}" data-id="${id}" data-d="-1" class="tap w-9 rounded-lg bg-gray-700 font-black" ${n<=0?'disabled':''}>−</button>
+        <button data-act="${act}" data-id="${id}" data-d="-1" class="btn btn-sq btn-secondary" aria-label="減少" ${n<=0?'disabled':''}>${icon('minus')}</button>
         <span class="w-6 text-center font-black">${n}</span>
-        <button data-act="${act}" data-id="${id}" data-d="1" class="tap w-9 rounded-lg bg-gray-700 font-black" ${lim!=null&&n>=lim?'disabled':''}>+</button>
+        <button data-act="${act}" data-id="${id}" data-d="1" class="btn btn-sq btn-secondary" aria-label="增加" ${lim!=null&&n>=lim?'disabled':''}>${icon('plus')}</button>
       </div></div>`; }).join('')}</div>`;
 }
 on('free-adj', d => { const n=(F.deck[d.id]||0)+(+d.d); if(n<0) return; F.deck[d.id]=n; const y=$('screen-view').querySelector('.page-body').scrollTop; freeSetup(); $('screen-view').querySelector('.page-body').scrollTop=y; });
@@ -147,15 +147,16 @@ function recordFree(r){
   if(!r.win && r.mon) fresh=fresh.concat(S.recordResult(r.mon.img,false,g));
   return fresh;
 }
-export function achHtml(fresh){ return fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-2 border-amber-500/60 text-left"><span class="text-2xl">${a.icon}</span><div><div class="text-[10px] text-amber-400 font-bold">🏅 新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join(''); }
+export function achHtml(fresh){ return fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-3 border-amber-500/60 text-left"><span class="tile">${icon(a.icon)}</span><div><div class="text-[10px] text-amber-400 font-bold">新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join(''); }
 async function freeResult(r){
   const fresh=recordFree(r), m=r.mon, h=S.records.hunts[m.img]||{wins:0,bestTurn:null};
-  const title=r.win?(r.stats.captured?'🪤 捕獲成功！':'🎉 狩獵成功！'):'💀 任務失敗';
+  const title=r.win?(r.stats.captured?'捕獲成功！':'狩獵成功！'):'任務失敗';
+  const hero=r.win?(r.stats.captured?`<span class="text-emerald-300">${icon('net')}</span>`:`<span class="text-amber-300">${icon('laurel')}</span>`):`<span class="text-red-400">${icon('skull')}</span>`;
   const sub=r.win?`第 ${r.turns} 回合${r.stats.captured?'捕獲':'討伐'} ${m.name}（此魔物 ${h.wins} 勝${h.bestTurn?'・最快 '+h.bestTurn+' 回':''}）`:`${r.reason}${m.hp>0?`（${m.name} 仍剩 ${m.hp} HP）`:''}`;
   const v = await modal(`<div class="text-center"><div class="w-28 h-28 mx-auto rounded-2xl bg-white p-2 mb-3 shadow-2xl"><img src="${m.img}" class="w-full h-full object-contain" alt=""></div>
-    <h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
+    <div class="hero-ic">${hero}</div><h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
     <div class="space-y-1.5">${achHtml(fresh)}</div></div>`,
-    [{label:'🔁 再打一次',cls:'btn-primary',value:'again'},{label:'🐲 換魔物',value:'change'},{label:'🏆 紀錄',value:'records'},{label:'🏠 主選單',value:'menu'}]);
+    [{label:'再打一次',icon:'retry',cls:'btn-primary',value:'again'},{label:'換魔物',icon:'dragon',value:'change'},{label:'紀錄',icon:'trophy',value:'records'},{label:'主選單',icon:'home',value:'menu'}]);
   if(v==='again') startFree();
   else if(v==='change'){ step=2; freeSetup(); }
   else if(v==='records') go('records','free');

@@ -1,10 +1,11 @@
 /* 素材：通用素材 + 每隻魔物一般／稀有素材 */
 import { MONSTERS, monsterKey } from './monsters.js';
+import { icon } from '../icons.js';
 
 export const GENERAL = {
-  herb:{name:'藥草',icon:'🌿'}, honey:{name:'蜂蜜',icon:'🍯'}, rawmeat:{name:'生肉',icon:'🥩'},
-  bug:{name:'光蟲',icon:'🐛'}, web:{name:'蜘蛛網',icon:'🕸️'}, iron:{name:'鐵礦石',icon:'⛏️'},
-  powder:{name:'爆藥粉',icon:'🧨'}, crystal:{name:'大地結晶',icon:'💎'},
+  herb:{name:'藥草',icon:'herb',cls:'text-green-300'}, honey:{name:'蜂蜜',icon:'honey',cls:'text-amber-300'}, rawmeat:{name:'生肉',icon:'steak',cls:'text-rose-300'},
+  bug:{name:'光蟲',icon:'beetle',cls:'text-lime-300'}, web:{name:'蜘蛛網',icon:'web',cls:'text-slate-300'}, iron:{name:'鐵礦石',icon:'ore',cls:'text-stone-300'},
+  powder:{name:'爆藥粉',icon:'powder',cls:'text-orange-300'}, crystal:{name:'大地結晶',icon:'crystal',cls:'text-cyan-300'},
 };
 const PARTS = {
   image001:['火龍之鱗','火龍紅玉'], image002:['蒼火龍之甲殼','蒼火龍逆鱗'], image003:['雌火龍之棘','雌火龍之延髓'],
@@ -29,9 +30,9 @@ for(const m of MONSTERS){
   MATERIALS[key+'r'] = {name:r, img:m.f, kind:'rare', mon:key};
 }
 export const matName = id => (MATERIALS[id]||{name:id}).name;
-/* 小圖示 HTML：通用素材用 emoji，魔物素材用魔物頭像，稀有多一圈金框 */
+/* 小圖示 HTML：通用素材用圖示，魔物素材用魔物頭像，稀有多一圈金框 */
 export function matIcon(id, size=28){
   const m = MATERIALS[id]; if(!m) return '';
-  if(m.icon) return `<span class="mat-ico" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.7)}px">${m.icon}</span>`;
+  if(m.icon) return `<span class="mat-ico ${m.cls||''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.66)}px">${icon(m.icon)}</span>`;
   return `<span class="mat-ico img ${m.kind==='rare'?'rare':''}" style="width:${size}px;height:${size}px"><img src="${m.img}" alt=""></span>`;
 }

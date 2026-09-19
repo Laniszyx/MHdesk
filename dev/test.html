@@ -14,7 +14,7 @@ document.getElementById('f').onload=async()=>{
     for(let i=0;i<50&&!w.__mh;i++)await sleep(50);
     const {E,B,S,launchBattle,setInstant}=w.__mh;setInstant(true);
     w.localStorage.clear();
-    const H=(weapon,extra={})=>({name:weapon,icon:'🧑',weapon,...extra});
+    const H=(weapon,extra={})=>({name:weapon,icon:'visor',weapon,...extra});
     const start=(cfg)=>launchBattle({mode:'free',deck:deck({basic:10,heavy:10,potion:10}),mons:[{key:'image001'}],objective:'hunt',carts:null,...cfg},{title:'t'});
     const CARD=id=>w.__mh.CARDS_DB[id];
     const give=(...ids)=>{B.hand.length=0;for(const id of ids)B.hand.push(CARD(id));};
