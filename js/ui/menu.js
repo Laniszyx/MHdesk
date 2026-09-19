@@ -6,7 +6,7 @@ import { WEAPONS } from '../data/weapons.js';
 import * as S from '../save.js';
 import { play as sfx, BGM_AVAILABLE } from '../audio.js';
 import { $, on, esc, page, showScreen, toast, modal, confirmBox, switchHtml } from './dom.js';
-import { icon } from '../icons.js';
+import { icon, micon } from '../icons.js';
 
 export const VERSION = 'v2.1';
 let nav = {};                               // 其他模組註冊的畫面入口
@@ -36,7 +36,7 @@ export function titleScreen(){
 
 /* ---------- 共用：選單按鈕（左圖示、標題、說明、右箭頭） ---------- */
 export const menuBtn = ({act='go', to='', icon:ic, name, desc='', main=false, badge='', attrs=''}) =>
-  `<button data-act="${act}" ${to?`data-to="${to}"`:''} ${attrs} class="menu-btn ${main?'main':''}"><span class="tile ${main?'gold':''}">${icon(ic)}</span><span class="flex-1 min-w-0"><span class="block font-black">${name}</span>${desc?`<span class="block text-[11px] text-gray-400 truncate">${desc}</span>`:''}</span>${badge}<span class="chev">${icon('chev')}</span></button>`;
+  `<button data-act="${act}" ${to?`data-to="${to}"`:''} ${attrs} class="menu-btn ${main?'main':''}"><span class="tile ${main?'gold':''}">${micon(ic)}</span><span class="flex-1 min-w-0"><span class="block font-black">${name}</span>${desc?`<span class="block text-[11px] text-gray-400 truncate">${desc}</span>`:''}</span>${badge}<span class="chev">${icon('chev')}</span></button>`;
 
 /* ---------- 主選單 ---------- */
 export function menuScreen(){
@@ -118,7 +118,7 @@ export function recordsScreen(back='menu'){
     return `<button data-act="mon-info" data-i="${i}" class="text-center"><div class="mon-pick ${w?'':'opacity-40 grayscale'}" style="padding:3px"><img src="${m.f}" alt="">${w?`<span class="tier bg-green-600 text-white inline-flex items-center">${icon('check')}${w}</span>`:''}</div>
       <div class="text-[9px] mt-0.5 truncate">${m.n}</div><div class="text-[8px] text-gray-500 leading-tight">${h?`${h.wins}勝${h.tries-h.wins}敗${h.bestTurn?'<br>最快 '+h.bestTurn+' 回':''}`:'未遭遇'}</div></button>`;}).join('')+`</div>`;
   html+=`<div class="sec">${icon('medal')}成就</div><div class="grid grid-cols-2 gap-1.5 mb-3">`+S.ACH.map(a=>{const on=!!s.ach[a.id];
-    return `<div class="panel p-2 flex gap-2 items-center ${on?'':'opacity-50'}"><span class="tile sm ${on?'':'gray'}">${icon(on?a.icon:'lock')}</span><div class="min-w-0"><div class="text-[11px] font-bold truncate">${a.name}</div><div class="text-[9px] text-gray-400 leading-tight">${a.desc}</div></div></div>`;}).join('')+`</div>`;
+    return `<div class="panel p-2 flex gap-2 items-center ${on?'':'opacity-50'}"><span class="tile sm ${on?'':'gray'}">${on?micon(a.icon):icon('lock')}</span><div class="min-w-0"><div class="text-[11px] font-bold truncate">${a.name}</div><div class="text-[9px] text-gray-400 leading-tight">${a.desc}</div></div></div>`;}).join('')+`</div>`;
   page({title:'圖鑑與紀錄', icon:'trophy', back:'records-back', body:html});
   recordsScreen._back = back;
 }

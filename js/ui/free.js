@@ -7,7 +7,7 @@ import { play as sfx } from '../audio.js';
 import { $, on, esc, page, modal, closeModal } from './dom.js';
 import { launchBattle } from './battle-view.js';
 import { go, registerNav, menuBtn } from './menu.js';
-import { icon, avatar, avatarId, AVATARS } from '../icons.js';
+import { icon, micon, avatar, avatarId, AVATARS } from '../icons.js';
 
 const defaultCfg = () => ({count:2, hunters:[{name:'獵人一',icon:'knight',weapon:'gs'},{name:'獵人二',icon:'spartan',weapon:'sns'}], monster:0, deck:{...DECK_PRESETS.balanced.counts}, tierTab:0});
 let F = null, step = 1;
@@ -62,7 +62,7 @@ function stepHunters(){
         <label class="w-16 shrink-0"><span class="block text-[10px] text-gray-500 mb-0.5">頭像</span>
           <button data-act="free-icon" data-i="${i}" class="av-btn" aria-label="換頭像">${avatar(h.icon)}</button></label>
       </div>
-      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="free-weapon" data-i="${i}" data-w="${w}" class="wpn-pick ${h.weapon===w?'sel':''}"><div>${icon(WEAPONS[w].icon)}</div><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
+      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="free-weapon" data-i="${i}" data-w="${w}" class="wpn-pick ${h.weapon===w?'sel':''}"><span class="tile sm">${micon(WEAPONS[w].icon)}</span><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
       <div class="text-[10px] text-gray-400 mt-2 leading-snug">${weaponLine(h.weapon)}</div>
     </div>`; };
   return `<div class="space-y-3 pt-1">
@@ -82,7 +82,7 @@ on('free-icon', async d => {
   if(v){ F.hunters[+d.i].icon=v; } freeSetup();
 });
 on('pick-icon', d => closeModal(d.v));
-export const iconPickerHtml = (cur) => `<div class="grid grid-cols-4 gap-2">${AVATARS.map(a=>`<button data-act="pick-icon" data-v="${a}" class="av-pick ${avatarId(cur)===a?'sel':''}">${icon(a)}</button>`).join('')}</div>`;
+export const iconPickerHtml = (cur) => `<div class="grid grid-cols-4 gap-2">${AVATARS.map(a=>`<button data-act="pick-icon" data-v="${a}" class="av-pick ${avatarId(cur)===a?'sel':''}">${micon(a)}</button>`).join('')}</div>`;
 
 function stepMonster(){
   const tabs=['全部','★','★★','★★★'];
@@ -120,7 +120,7 @@ export function deckListHtml(counts, act, limits, hunterSpec){
   const h = hunterSpec ? {weapon:WEAPONS[hunterSpec.weapon], atk:WEAPONS[hunterSpec.weapon].atk+((hunterSpec.wlv||1)-1), skillDmg:WEAPONS[hunterSpec.weapon].skill.dmg+((hunterSpec.wlv||1)-1)} : null;
   return `<div class="space-y-2">${CARD_ORDER.filter(id=>!limits||limits[id]>0).map(id=>{ const c=CARDS_DB[id], n=counts[id]||0, lim=limits?limits[id]:null;
     return `<div class="panel p-2 flex items-center gap-2">
-      <div class="card-ic ${c.type}">${icon(c.glyph)}</div>
+      <div class="card-ic ${c.type}">${micon(c.glyph)}</div>
       <div class="flex-1 min-w-0"><div class="text-sm font-bold">${id==='skill'&&h?h.weapon.skill.name:c.name} ${c.isItem?'<span class="text-[9px] bg-amber-900 text-amber-300 px-1 rounded">道具</span>':''}${lim!=null?`<span class="text-[9px] text-gray-500 ml-1">持有 ${lim}</span>`:''}</div><div class="text-[10px] text-gray-400 leading-tight">${cardDesc(c,h)}</div></div>
       <div class="flex items-center gap-1 shrink-0">
         <button data-act="${act}" data-id="${id}" data-d="-1" class="btn btn-sq btn-secondary" aria-label="減少" ${n<=0?'disabled':''}>${icon('minus')}</button>
@@ -147,14 +147,14 @@ function recordFree(r){
   if(!r.win && r.mon) fresh=fresh.concat(S.recordResult(r.mon.img,false,g));
   return fresh;
 }
-export function achHtml(fresh){ return fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-3 border-amber-500/60 text-left"><span class="tile">${icon(a.icon)}</span><div><div class="text-[10px] text-amber-400 font-bold">新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join(''); }
+export function achHtml(fresh){ return fresh.map(a=>`<div class="panel px-3 py-2 flex items-center gap-3 border-amber-500/60 text-left"><span class="tile">${micon(a.icon)}</span><div><div class="text-[10px] text-amber-400 font-bold">新成就解鎖</div><div class="text-sm font-black">${a.name}</div><div class="text-[10px] text-gray-400">${a.desc}</div></div></div>`).join(''); }
 async function freeResult(r){
   const fresh=recordFree(r), m=r.mon, h=S.records.hunts[m.img]||{wins:0,bestTurn:null};
   const title=r.win?(r.stats.captured?'捕獲成功！':'狩獵成功！'):'任務失敗';
-  const hero=r.win?(r.stats.captured?`<span class="text-emerald-300">${icon('net')}</span>`:`<span class="text-amber-300">${icon('laurel')}</span>`):`<span class="text-red-400">${icon('skull')}</span>`;
+  const hero=micon(r.win?(r.stats.captured?'net':'laurel'):'skull');
   const sub=r.win?`第 ${r.turns} 回合${r.stats.captured?'捕獲':'討伐'} ${m.name}（此魔物 ${h.wins} 勝${h.bestTurn?'・最快 '+h.bestTurn+' 回':''}）`:`${r.reason}${m.hp>0?`（${m.name} 仍剩 ${m.hp} HP）`:''}`;
   const v = await modal(`<div class="text-center"><div class="w-28 h-28 mx-auto rounded-2xl bg-white p-2 mb-3 shadow-2xl"><img src="${m.img}" class="w-full h-full object-contain" alt=""></div>
-    <div class="hero-ic">${hero}</div><h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
+    <div class="hero-ic mb-2">${hero}</div><h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
     <div class="space-y-1.5">${achHtml(fresh)}</div></div>`,
     [{label:'再打一次',icon:'retry',cls:'btn-primary',value:'again'},{label:'換魔物',icon:'dragon',value:'change'},{label:'紀錄',icon:'trophy',value:'records'},{label:'主選單',icon:'home',value:'menu'}]);
   if(v==='again') startFree();

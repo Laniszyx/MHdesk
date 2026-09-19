@@ -8,7 +8,7 @@ import { WEAPONS } from '../data/weapons.js';
 import { settings, saveSettings } from '../save.js';
 import { play as sfx } from '../audio.js';
 import { $, on, toast, announce, toggleDrawer, wait, instant, modal, closeModal, confirmBox, showScreen } from './dom.js';
-import { icon, avatar } from '../icons.js';
+import { icon, micon, avatar } from '../icons.js';
 
 let ctx = {};          // {onFinish(result), onAbandon(), eventListener}
 export const battleCtx = () => ctx;
@@ -96,7 +96,7 @@ export function render(){
     const on=B.cur===h.id, dead=!E.alive(h);
     const extra=[h.weapon.id==='ls'?`<span class="text-sky-300">練氣 ${'●'.repeat(h.spirit)}${'○'.repeat(3-h.spirit)}</span>`:'', h.dashBuff?`<span class="text-lime-300" title="強走藥">${icon('flask')}</span>`:''].filter(Boolean).join(' ');
     return `<div data-act="hunter-select" data-i="${h.id}" class="tap hunter-card panel px-2 py-1.5 flex items-center gap-2 border-2" style="border-color:${on&&!solo?'var(--amber)':'transparent'};opacity:${dead?.4:1}">
-      <span class="text-2xl ${h.color==='red'?'text-red-300':'text-blue-300'}">${avatar(h.icon)}</span>
+      <span class="tile sm" style="border-color:${h.color==='red'?'#8a2e24':'#3f5f96'}">${avatar(h.icon)}</span>
       <div class="flex-1 min-w-0">
         <div class="flex justify-between text-[11px] gap-1"><b class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</b><span class="text-gray-300 shrink-0">${Math.max(0,h.hp)}/${h.maxHp}</span></div>
         <div class="bar bar-green mt-0.5" style="height:6px"><div style="width:${Math.max(0,h.hp/h.maxHp*100)}%"></div></div>
@@ -156,7 +156,7 @@ function renderHand(){
     const {ok,hint}=E.canPlay(card,h);
     const placing=B.placement&&B.placement.idx===i;
     return `<div class="card ${card.type}" ${placing?'style="outline:2px solid #fde68a"':''}>
-      <div class="flex items-center gap-1"><span class="cic">${icon(card.glyph)}</span><b class="text-[11px] truncate">${card.id==='skill'?h.weapon.skill.name:card.name}</b></div>
+      <div class="flex items-center gap-1"><span class="cic">${micon(card.glyph)}</span><b class="text-[11px] truncate">${card.id==='skill'?h.weapon.skill.name:card.name}</b></div>
       <div class="text-[9px] text-gray-300 leading-tight flex-1 clamp3">${cardDesc(card,h)}</div>
       <div class="flex flex-col gap-1 mt-1">
         <button class="cbtn play" data-act="card-play" data-i="${i}" ${ok&&!B.over?'':'disabled'}>${ok?'打出':hint}</button>

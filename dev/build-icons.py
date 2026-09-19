@@ -33,6 +33,31 @@ GAME={
  'spartan':'delapouite/spartan-helmet','knight':'delapouite/black-knight-helm','samurai':'delapouite/samurai-helmet','hood':'lorc/hood',
  'elf':'kier-heyl/elf-helmet','dwarf':'kier-heyl/dwarf-helmet','fox':'lorc/fox-head','wolf':'lorc/wolf-head','eagle':'delapouite/eagle-head','bow':'lorc/pocket-bow',
 }
+# 魔物圖騰用的配色（取自魔物圖示）：每個遊戲圖示 = [暗色底片, 亮色主體]
+P={'charcoal':'#343843','rust':'#a13b2c','tan':'#ac8b5e','mustard':'#e0c060','ochre':'#c09040','olive':'#607040','leaf':'#8fb050',
+   'slate':'#505070','steel':'#80a0d0','plum':'#504060','lilac':'#a070b0','pink':'#c67f7d','cream':'#e0d0b0','brown':'#6b4a2e',
+   'teal':'#509070','ash':'#707070','bone':'#c0c0b0','wine':'#702030'}
+TONE={
+ 'gs':'charcoal rust','sns':'charcoal steel','lance':'charcoal tan','hammer':'charcoal ochre','ls':'charcoal slate',
+ 'slash':'charcoal rust','impact':'wine rust','spin':'brown mustard','dodge':'slate steel','shield':'slate steel','knife':'charcoal ash',
+ 'potion':'olive leaf','meat':'wine pink','flash':'ochre mustard','trap':'charcoal tan','shock':'slate mustard','barrel':'brown tan',
+ 'flask':'olive teal','pill':'olive leaf','cannon':'charcoal ochre',
+ 'snail':'olive teal','bolt':'ochre mustard','poison':'plum lilac','fire':'rust mustard','bleed':'wine rust','push':'ash bone',
+ 'wing':'slate steel','rock':'ash bone','enrage':'wine rust','dizzy':'ochre mustard',
+ 'herb':'olive leaf','honey':'ochre mustard','steak':'wine pink','beetle':'olive mustard','web':'ash bone','ore':'charcoal ash',
+ 'powder':'brown ochre','crystal':'slate steel',
+ 'target':'charcoal rust','swords':'charcoal rust','sabres':'charcoal tan','book':'brown tan','crown':'ochre mustard','dragon':'charcoal rust',
+ 'dragon2':'plum lilac','wings':'ash cream','stopwatch':'charcoal ochre','embers':'rust mustard','net':'olive tan','pine':'olive leaf',
+ 'sunrise':'ochre mustard','anvil':'charcoal rust','armor':'charcoal tan','tent':'brown tan','scroll':'brown cream','chest':'brown ochre',
+ 'cards':'charcoal tan','cat':'charcoal pink','skull':'charcoal bone','claw':'charcoal rust','roar':'charcoal ochre','explosion':'rust mustard',
+ 'heal':'olive leaf','recycle':'olive teal','laurel':'ochre mustard','dice':'charcoal cream','medal':'ochre mustard','trophy':'ochre mustard',
+ 'map':'brown cream','bell':'ochre mustard','hourglass':'brown tan','present':'rust mustard','eye':'charcoal steel','door':'brown tan',
+ 'footprint':'charcoal tan','bulb':'ochre mustard','pin':'rust tan','chain':'charcoal ash','resist':'slate steel','heartbreak':'wine rust',
+ 'cog':'charcoal ash','quill':'brown cream','cap':'charcoal tan','upgrade':'olive leaf','whistle':'charcoal ochre','hazard':'ochre mustard',
+ 'spanner':'charcoal ash','sprint':'rust ochre',
+ 'visor':'charcoal tan','barbute':'charcoal ash','crested':'charcoal rust','viking':'brown tan','spartan':'charcoal ochre','knight':'charcoal slate',
+ 'samurai':'wine rust','hood':'plum slate','elf':'olive leaf','dwarf':'brown ochre','fox':'rust ochre','wolf':'ash bone','eagle':'brown tan','bow':'brown tan',
+}
 LUCIDE={'back':'arrow-left','next':'arrow-right','chev':'chevron-right','close':'x','pause':'pause','play':'play','help':'circle-help',
  'log':'scroll-text','settings':'settings','undo':'undo-2','retry':'rotate-ccw','home':'house','copy':'clipboard-copy','lock':'lock',
  'check':'check','alert':'triangle-alert','plus':'plus','minus':'minus','user':'user','users':'users','hide':'chevron-down','info':'info'}
@@ -59,22 +84,28 @@ def game(k,p):
   s=s.replace('<path d="M0 0h512v512H0z"/>','')
   ds=re.findall(r'<path[^>]*\sd="([^"]+)"',s)
   body=''.join(f'<path d="{short(d)}"/>' for d in ds)
-  return k,f'<symbol id="i-{k}" viewBox="0 0 512 512">{body}</symbol>'
+  dark,acc=(P[c] for c in TONE[k].split())
+  # 魔物圖騰風格：暗色底片往右下偏移、亮色主體、右下角回到暗色，各層之間用白色細線切開
+  mh=(f'<use href="#p-{k}" fill="{dark}" transform="translate(16 16)"/><use href="#p-{k}" fill="none" stroke="#fff" stroke-width="13" stroke-linejoin="round" transform="translate(16 16)"/>'
+      f'<use href="#p-{k}" fill="{acc}"/><use href="#p-{k}" fill="{dark}" clip-path="url(#mh-cut)"/><use href="#p-{k}" fill="none" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>')
+  return k,(f'<g id="p-{k}">{body}</g>', f'<symbol id="i-{k}" viewBox="0 0 512 512"><use href="#p-{k}"/></symbol><symbol id="m-{k}" viewBox="-10 -10 548 548">{mh}</symbol>')
 def luc(k,n):
   s=fetch(LU+n+'.svg',os.path.join(CACHE,'lu',n+'.svg'))
   inner=re.search(r'<svg[^>]*>(.*)</svg>',s,re.S).group(1).strip()
   inner=re.sub(r'\s+',' ',inner).replace('> <','><')
-  return k,f'<symbol id="i-{k}" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{inner}</g></symbol>'
+  return k,('', f'<symbol id="i-{k}" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">{inner}</g></symbol>')
 with cf.ThreadPoolExecutor(16) as ex:
   syms=dict(ex.map(lambda kv:game(*kv),GAME.items()))
   syms.update(dict(ex.map(lambda kv:luc(*kv),LUCIDE.items())))
 authors=sorted({p.split('/')[0] for p in GAME.values()})
-sprite=''.join(syms[k] for k in list(GAME)+list(LUCIDE))
+keys=list(GAME)+list(LUCIDE)
+sprite='<defs><clipPath id="mh-cut"><polygon points="512,0 512,512 0,512"/></clipPath>'+''.join(syms[k][0] for k in keys)+'</defs>'+''.join(syms[k][1] for k in keys)
 out=f"""/* 由 dev/build-icons.py 產生，請勿手動編輯。
    遊戲圖示：game-icons.net（CC BY 3.0）作者 {', '.join(authors)}
    介面圖示：Lucide（ISC License） */
 export const SPRITE = {json.dumps(sprite,ensure_ascii=False)};
-export const ICON_NAMES = {json.dumps(list(GAME)+list(LUCIDE))};
+export const ICON_NAMES = {json.dumps(keys)};
+export const MH_ICONS = {json.dumps(list(GAME))};
 """
 open(os.path.join(HERE,'..','js','icon-data.js'),'w',encoding='utf-8',newline='\n').write(out)
 print(len(syms),'icons',len(out)//1024,'KB', 'authors',authors)

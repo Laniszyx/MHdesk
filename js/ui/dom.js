@@ -1,7 +1,7 @@
 /* 共用 UI 工具：data-act 事件分派、toast、抽屜、對話框、畫面切換 */
 import { settings } from '../save.js';
 import { play as sfx } from '../audio.js';
-import { icon } from '../icons.js';
+import { icon, micon } from '../icons.js';
 
 export const $ = id => document.getElementById(id);
 export const esc = s => String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -70,7 +70,7 @@ export function page({title, icon:ic='', sub='', back=null, right='', body='', f
   $('screen-view').innerHTML = `
   <header class="shrink-0 px-3 pt-3 pb-2 flex items-center gap-2">
     ${back?`<button data-act="${back}" class="btn btn-icon" aria-label="返回">${icon('back')}</button>`:'<span class="w-1"></span>'}
-    ${ic?`<span class="tile sm">${icon(ic)}</span>`:''}
+    ${ic?`<span class="tile sm">${micon(ic)}</span>`:''}
     <div class="flex-1 min-w-0"><h1 class="text-lg font-black truncate leading-tight">${title}</h1>${sub?`<div class="text-[11px] text-gray-400 truncate">${sub}</div>`:''}</div>
     ${right}
   </header>

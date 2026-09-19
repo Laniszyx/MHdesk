@@ -1,6 +1,6 @@
 /* 素材：通用素材 + 每隻魔物一般／稀有素材 */
 import { MONSTERS, monsterKey } from './monsters.js';
-import { icon } from '../icons.js';
+import { micon } from '../icons.js';
 
 export const GENERAL = {
   herb:{name:'藥草',icon:'herb',cls:'text-green-300'}, honey:{name:'蜂蜜',icon:'honey',cls:'text-amber-300'}, rawmeat:{name:'生肉',icon:'steak',cls:'text-rose-300'},
@@ -33,6 +33,6 @@ export const matName = id => (MATERIALS[id]||{name:id}).name;
 /* 小圖示 HTML：通用素材用圖示，魔物素材用魔物頭像，稀有多一圈金框 */
 export function matIcon(id, size=28){
   const m = MATERIALS[id]; if(!m) return '';
-  if(m.icon) return `<span class="mat-ico ${m.cls||''}" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.66)}px">${icon(m.icon)}</span>`;
+  if(m.icon) return `<span class="mat-ico" style="width:${size}px;height:${size}px;font-size:${Math.round(size*.78)}px">${micon(m.icon)}</span>`;
   return `<span class="mat-ico img ${m.kind==='rare'?'rare':''}" style="width:${size}px;height:${size}px"><img src="${m.img}" alt=""></span>`;
 }

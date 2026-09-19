@@ -11,7 +11,7 @@ import { play as sfx } from '../audio.js';
 import { $, on, esc, page, modal, closeModal, confirmBox, toast } from './dom.js';
 import { launchBattle } from './battle-view.js';
 import { go, registerNav, monsterInfoHtml, menuBtn } from './menu.js';
-import { icon, avatar } from '../icons.js';
+import { icon, micon, avatar } from '../icons.js';
 import { deckListHtml, weaponLine, iconPickerHtml, achHtml } from './free.js';
 import { startTutorial } from './tutorial.js';
 
@@ -49,7 +49,7 @@ function createScreen(){
           <button data-act="new-icon" class="av-btn" aria-label="換頭像">${avatar(draft.icon)}</button></label>
       </div>
       <div class="text-[10px] text-gray-500 mb-1">選擇武器（之後可在集會所隨時更換）</div>
-      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="new-weapon" data-w="${w}" class="wpn-pick ${draft.weapon===w?'sel':''}"><div>${icon(WEAPONS[w].icon)}</div><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
+      <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="new-weapon" data-w="${w}" class="wpn-pick ${draft.weapon===w?'sel':''}"><span class="tile sm">${micon(WEAPONS[w].icon)}</span><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div></button>`).join('')}</div>
       <div class="text-[11px] text-gray-300 mt-2 leading-snug">${weaponLine(draft.weapon)}</div>
     </div>
     <div class="text-[11px] text-gray-400 mt-3 px-1 leading-relaxed">接下來會先進行「第 0 關・新手訓練」。已經會玩的話，訓練中隨時可以按「跳過教學」。</div>`,
@@ -74,7 +74,7 @@ function hub(){
         <div class="text-[11px] text-gray-400 flex flex-wrap gap-x-2"><span>${icon(w.icon,'text-amber-300')} ${w.name} Lv${wl}（攻擊 ${w.atk+weaponBonus(wl)}）</span><span>${icon('armor','text-amber-300')} 防具 Lv${s.armor.lv}（HP ${w.hp+armorBonus(s.armor.lv)}）${s.armor.resist?'・抗'+RESISTS[s.armor.resist]:''}</span></div>
         <div class="mt-1">${hrBar()}</div>
       </div></div>
-    ${nq?`<button data-act="quest" data-id="${nq.id}" class="quest-card ${nq.urgent?'urgent':''} mt-3"><div class="qimg"><img src="${monsterByKey(nq.mons[0]).f}" alt=""></div><div class="flex-1 min-w-0"><div class="text-[10px] text-amber-300 font-bold">建議下一個任務</div><div class="font-black text-sm truncate">${nq.title}</div><div class="text-[10px] text-gray-400">${typeChip(nq)} ${stars(nq)}${nq.turns?'・'+nq.turns+' 回合':''}</div></div><span class="chev text-gray-500">${icon('chev')}</span></button>`:`<div class="panel p-3 mt-3 text-center text-sm text-amber-200"><div class="text-3xl mb-1">${icon('sunrise')}</div>所有主線任務都完成了！可以回任務板刷素材或挑戰更高評價。</div>`}
+    ${nq?`<button data-act="quest" data-id="${nq.id}" class="quest-card ${nq.urgent?'urgent':''} mt-3"><div class="qimg"><img src="${monsterByKey(nq.mons[0]).f}" alt=""></div><div class="flex-1 min-w-0"><div class="text-[10px] text-amber-300 font-bold">建議下一個任務</div><div class="font-black text-sm truncate">${nq.title}</div><div class="text-[10px] text-gray-400">${typeChip(nq)} ${stars(nq)}${nq.turns?'・'+nq.turns+' 回合':''}</div></div><span class="chev text-gray-500">${icon('chev')}</span></button>`:`<div class="panel p-3 mt-3 text-center text-sm text-amber-200"><div class="tile lg mx-auto mb-2">${micon('sunrise')}</div>所有主線任務都完成了！可以回任務板刷素材或挑戰更高評價。</div>`}
     <div class="space-y-3 mt-3">
       ${card('board','scroll','任務板',`${CHAPTERS.filter(c=>L.chapterUnlocked(s,c.id)).length}/${CHAPTERS.length} 章節開放・已完成 ${Object.keys(s.cleared).length}/${QUESTS.length}`)}
       ${card('forge','anvil','工房','強化武器與防具、製作卡牌',craft?`<span class="chip bg-amber-500 text-black">可製作 ${craft}</span>`:'')}
@@ -137,8 +137,8 @@ function prep(){
     <div class="sec">${icon('claw')}出場魔物</div>
     <div class="flex gap-2">${monHtml}</div>
     <div class="sec">${icon('armor')}裝備</div>
-    <button data-act="hunter" class="panel p-2 w-full text-left flex items-center gap-2"><span class="tile">${icon(w.icon)}</span><div class="flex-1 min-w-0"><div class="text-xs font-black">${w.name} Lv${spec.wlv}・防具 Lv${spec.alv}${spec.resist?'・抗'+RESISTS[spec.resist]:''}</div><div class="text-[10px] text-gray-400">HP ${w.hp+armorBonus(spec.alv)}・攻擊 ${w.atk+weaponBonus(spec.wlv)}・${w.move} 步・技能【${w.skill.name}】</div></div><span class="text-[11px] text-amber-300 inline-flex items-center shrink-0">更換${icon('chev')}</span></button>
-    <button data-act="deck-edit" class="panel p-2 w-full text-left flex items-center gap-2 mt-2"><span class="tile">${icon('cards')}</span><div class="flex-1 min-w-0"><div class="text-xs font-black">牌組 ${total} 張・道具 ${items} 張</div><div class="text-[10px] ${err?'text-red-300':'text-gray-400'}">${err||'單人手牌 4 張'}</div></div><span class="text-[11px] text-amber-300 inline-flex items-center shrink-0">編輯${icon('chev')}</span></button>`,
+    <button data-act="hunter" class="panel p-2 w-full text-left flex items-center gap-2"><span class="tile">${micon(w.icon)}</span><div class="flex-1 min-w-0"><div class="text-xs font-black">${w.name} Lv${spec.wlv}・防具 Lv${spec.alv}${spec.resist?'・抗'+RESISTS[spec.resist]:''}</div><div class="text-[10px] text-gray-400">HP ${w.hp+armorBonus(spec.alv)}・攻擊 ${w.atk+weaponBonus(spec.wlv)}・${w.move} 步・技能【${w.skill.name}】</div></div><span class="text-[11px] text-amber-300 inline-flex items-center shrink-0">更換${icon('chev')}</span></button>
+    <button data-act="deck-edit" class="panel p-2 w-full text-left flex items-center gap-2 mt-2"><span class="tile">${micon('cards')}</span><div class="flex-1 min-w-0"><div class="text-xs font-black">牌組 ${total} 張・道具 ${items} 張</div><div class="text-[10px] ${err?'text-red-300':'text-gray-400'}">${err||'單人手牌 4 張'}</div></div><span class="text-[11px] text-amber-300 inline-flex items-center shrink-0">編輯${icon('chev')}</span></button>`,
     footer: q.type==='tutorial'
       ? `${s.tutorialDone?'':'<button data-act="skip-tutorial" class="btn btn-lg btn-secondary">跳過教學</button>'}<button data-act="depart" class="btn btn-lg btn-primary flex-1">${s.tutorialDone?'重玩訓練':'開始訓練'}${icon('next')}</button>`
       : `<button data-act="depart" class="btn btn-lg btn-primary flex-1" ${err?'disabled':''}>${err?'牌組不符規定':`${icon('swords')}出發！`}</button>`});
@@ -172,16 +172,16 @@ function forge(){
   const tabs=[['weapon','gs','武器'],['armor','armor','防具'],['card','cards','卡牌']].map(([k,ic,l])=>`<button class="${forgeTab===k?'on':''}" data-act="forge-tab" data-t="${k}">${icon(ic)}${l}</button>`).join('');
   let body='';
   if(forgeTab==='weapon') body=WEAPON_IDS.map(w=>{ const W=WEAPONS[w], lv=s.weapons[w]||1, n=L.weaponNext(s,w), ok=n&&L.canAfford(s,n.cost);
-    return `<div class="panel p-3"><div class="flex items-center gap-2"><span class="tile">${icon(W.icon)}</span><div class="flex-1"><div class="font-black text-sm">${W.name} <span class="text-amber-300">Lv${lv}</span>${s.hunter.weapon===w?' <span class="chip bg-sky-700 text-white">使用中</span>':''}</div><div class="text-[10px] text-gray-400">攻擊 ${W.atk+weaponBonus(lv)}・技能 ${W.skill.dmg+weaponBonus(lv)} 傷${n?` → Lv${n.lv}：攻擊 ${W.atk+weaponBonus(n.lv)}・技能 ${W.skill.dmg+weaponBonus(n.lv)}`:'（已滿級）'}</div></div>
+    return `<div class="panel p-3"><div class="flex items-center gap-2"><span class="tile">${micon(W.icon)}</span><div class="flex-1"><div class="font-black text-sm">${W.name} <span class="text-amber-300">Lv${lv}</span>${s.hunter.weapon===w?' <span class="chip bg-sky-700 text-white">使用中</span>':''}</div><div class="text-[10px] text-gray-400">攻擊 ${W.atk+weaponBonus(lv)}・技能 ${W.skill.dmg+weaponBonus(lv)} 傷${n?` → Lv${n.lv}：攻擊 ${W.atk+weaponBonus(n.lv)}・技能 ${W.skill.dmg+weaponBonus(n.lv)}`:'（已滿級）'}</div></div>
       ${n?`<button data-act="craft-weapon" data-w="${w}" class="btn btn-sm ${ok?'btn-primary':'btn-secondary opacity-60'}">強化</button>`:''}</div>
       ${n?`<div class="mt-2 flex flex-wrap">${costHtml(n.cost)}</div>`:''}</div>`; }).join('');
   if(forgeTab==='armor'){ const n=L.armorNext(s), ok=n&&L.canAfford(s,n.cost);
-    body=`<div class="panel p-3"><div class="flex items-center gap-2"><span class="tile">${icon('armor')}</span><div class="flex-1"><div class="font-black text-sm">獵人防具 <span class="text-amber-300">Lv${s.armor.lv}</span></div><div class="text-[10px] text-gray-400">最大 HP +${armorBonus(s.armor.lv)}${n?` → Lv${n.lv}：+${armorBonus(n.lv)}${n.lv===ARMOR_MAX_LV?'，並可選一種異常抗性':''}`:'（已滿級）'}</div></div>
+    body=`<div class="panel p-3"><div class="flex items-center gap-2"><span class="tile">${micon('armor')}</span><div class="flex-1"><div class="font-black text-sm">獵人防具 <span class="text-amber-300">Lv${s.armor.lv}</span></div><div class="text-[10px] text-gray-400">最大 HP +${armorBonus(s.armor.lv)}${n?` → Lv${n.lv}：+${armorBonus(n.lv)}${n.lv===ARMOR_MAX_LV?'，並可選一種異常抗性':''}`:'（已滿級）'}</div></div>
       ${n?`<button data-act="craft-armor" class="btn btn-sm ${ok?'btn-primary':'btn-secondary opacity-60'}">強化</button>`:''}</div>
       ${n?`<div class="mt-2 flex flex-wrap">${costHtml(n.cost)}</div>`:''}</div>
       ${s.armor.lv>=ARMOR_MAX_LV?resistPicker():''}`; }
   if(forgeTab==='card') body=CARD_ORDER.map(id=>{ const c=CARDS_DB[id], r=CARD_RECIPES[id], own=s.owned[id]||0, n=L.cardNext(s,id), ok=n&&L.canAfford(s,n.cost);
-    return `<div class="panel p-3 ${own?'':'border-dashed'}"><div class="flex items-center gap-2"><div class="card-ic ${c.type}">${icon(c.glyph)}</div>
+    return `<div class="panel p-3 ${own?'':'border-dashed'}"><div class="flex items-center gap-2"><div class="card-ic ${c.type}">${micon(c.glyph)}</div>
       <div class="flex-1 min-w-0"><div class="font-black text-sm">${c.name} ${own?'':'<span class="chip bg-fuchsia-700 text-white">未解鎖</span>'}</div><div class="text-[10px] text-gray-400">持有 ${own}/${r.max}${c.isItem?'・道具':''}</div></div>
       ${n?`<button data-act="craft-card" data-id="${id}" class="btn btn-sm ${ok?'btn-primary':'btn-secondary opacity-60'}">${own?'製作':'解鎖'}</button>`:`<span class="text-[10px] text-gray-500">${r.cost?'已滿':'基本卡'}</span>`}</div>
       ${n?`<div class="mt-2 flex flex-wrap">${costHtml(n.cost)}</div>`:''}</div>`; }).join('');
@@ -204,7 +204,7 @@ function box(){
   const gen=Object.keys(GENERAL).map(id=>`<div class="panel p-2 flex items-center gap-2">${matIcon(id,28)}<div class="flex-1 min-w-0 text-xs">${matName(id)}</div><b class="text-sm">${L.have(s,id)}</b></div>`).join('');
   const monIds=Object.keys(MATERIALS).filter(id=>MATERIALS[id].kind!=='general'&&L.have(s,id)>0);
   const mon=monIds.length?monIds.map(id=>`<div class="panel p-2 flex items-center gap-2">${matIcon(id,28)}<div class="flex-1 min-w-0 text-[11px] leading-tight">${matName(id)}${MATERIALS[id].kind==='rare'?' <span class="chip bg-amber-500/20 text-amber-300">稀有</span>':''}</div><b class="text-sm">${L.have(s,id)}</b></div>`).join(''):'<div class="text-xs text-gray-500 col-span-2">還沒有魔物素材。完成任務就會取得。</div>';
-  const cards=CARD_ORDER.filter(id=>s.owned[id]>0).map(id=>`<div class="panel p-2 flex items-center gap-2 text-xs"><span class="card-ic ${CARDS_DB[id].type}" style="width:28px;height:28px;flex-basis:28px;font-size:16px">${icon(CARDS_DB[id].glyph)}</span><span class="flex-1">${CARDS_DB[id].name}</span><b>${s.owned[id]}</b><span class="text-gray-500 text-[10px]">牌組 ${s.deck[id]||0}</span></div>`).join('');
+  const cards=CARD_ORDER.filter(id=>s.owned[id]>0).map(id=>`<div class="panel p-2 flex items-center gap-2 text-xs"><span class="card-ic ${CARDS_DB[id].type}" style="width:28px;height:28px;flex-basis:28px;font-size:22px">${micon(CARDS_DB[id].glyph)}</span><span class="flex-1">${CARDS_DB[id].name}</span><b>${s.owned[id]}</b><span class="text-gray-500 text-[10px]">牌組 ${s.deck[id]||0}</span></div>`).join('');
   page({title:'道具箱', icon:'chest', back:'to-hub', body:`
     <div class="sec">${icon('herb')}通用素材</div><div class="grid grid-cols-2 gap-1.5">${gen}</div>
     <div class="sec">${icon('claw')}魔物素材</div><div class="grid grid-cols-2 gap-1.5">${mon}</div>
@@ -224,7 +224,7 @@ function hunterPage(){
           <button data-act="hunter-icon" class="av-btn" aria-label="換頭像">${avatar(s.hunter.icon)}</button></label>
       </div></div>
     <div class="sec">${icon('swords')}武器<span class="font-normal text-gray-500">（強化等級各自獨立）</span></div>
-    <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="hunter-weapon" data-w="${w}" class="wpn-pick ${s.hunter.weapon===w?'sel':''}"><div>${icon(WEAPONS[w].icon)}</div><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div><div class="text-[9px] text-amber-300">Lv${s.weapons[w]||1}</div></button>`).join('')}</div>
+    <div class="grid grid-cols-5 gap-1.5">${WEAPON_IDS.map(w=>`<button data-act="hunter-weapon" data-w="${w}" class="wpn-pick ${s.hunter.weapon===w?'sel':''}"><span class="tile sm">${micon(WEAPONS[w].icon)}</span><div class="text-[10px] font-bold mt-0.5">${WEAPONS[w].name}</div><div class="text-[9px] text-amber-300">Lv${s.weapons[w]||1}</div></button>`).join('')}</div>
     <div class="panel p-3 mt-2 text-[11px] text-gray-300 leading-snug">${weaponLine(s.hunter.weapon)}<br><span class="text-amber-200">目前 Lv${s.weapons[s.hunter.weapon]}：攻擊 +${weaponBonus(s.weapons[s.hunter.weapon])}</span></div>
     <div class="sec">${icon('armor')}防具 Lv${s.armor.lv}<span class="font-normal text-gray-500">（HP +${armorBonus(s.armor.lv)}）</span></div>
     ${s.armor.lv>=ARMOR_MAX_LV?resistPicker():'<div class="text-[11px] text-gray-500">防具強化到 Lv4 後可選擇異常抗性</div>'}`});
@@ -269,7 +269,7 @@ function questResult(q, r){
   page({title:'任務結算', sub:q.title, body:`
     <div class="text-center pt-2">
       <div class="w-24 h-24 mx-auto rounded-2xl bg-white p-2 mb-2 shadow-2xl"><img src="${m.img}" class="w-full h-full object-contain" alt=""></div>
-      <div class="hero-ic ${hero[1]}">${icon(hero[0])}</div><h2 class="text-3xl font-black ${r.win?'text-green-400':'text-red-500'}">${title}</h2>
+      <div class="hero-ic mb-2">${micon(hero[0])}</div><h2 class="text-3xl font-black ${r.win?'text-green-400':'text-red-500'}">${title}</h2>
       <p class="text-gray-400 text-xs mt-1">${r.win?'':r.reason}</p>
       ${r.win&&q.type!=='tutorial'?`<div class="rank rank-${res.rank} text-6xl mt-1">${res.rank}</div>`:''}
     </div>
@@ -281,7 +281,7 @@ function questResult(q, r){
     ${r.win?`<div class="panel p-3 mt-3"><div class="text-[11px] font-bold text-amber-300 mb-1 flex items-center gap-1">${icon('present')}獲得素材</div><div class="flex flex-wrap">${dropsHtml(res.drops)}</div></div>
     <div class="panel p-3 mt-2"><div class="text-[11px] font-bold text-amber-300 mb-1">HR 經驗 +${res.exp}${res.firstClear?'':'（重複挑戰減半）'}</div>${hrBar()}${res.hrAfter>res.hrBefore?`<div class="text-center text-amber-300 font-black mt-1 flex items-center justify-center gap-1">${icon('upgrade')}HR 提升到 ${res.hrAfter}！</div>`:''}</div>`
     :`<div class="panel p-3 mt-3 text-[11px] text-gray-300 leading-relaxed irow"><span class="text-amber-300">${icon('bulb')}</span><div><b class="text-amber-200">提示</b>：${failTip(q,r)}</div></div>`}
-    ${res.unlocked.length?`<div class="space-y-1.5 mt-2">${res.unlocked.map(u=>`<div class="panel p-2 text-sm font-black text-amber-200 border-amber-500/60 flex items-center gap-2"><span class="tile sm">${icon(u.icon)}</span>${u.text}</div>`).join('')}</div>`:''}
+    ${res.unlocked.length?`<div class="space-y-1.5 mt-2">${res.unlocked.map(u=>`<div class="panel p-2 text-sm font-black text-amber-200 border-amber-500/60 flex items-center gap-2"><span class="tile sm">${micon(u.icon)}</span>${u.text}</div>`).join('')}</div>`:''}
     <div class="space-y-1.5 mt-2">${achHtml(fresh)}</div>`,
     footer:`<button data-act="to-hub" class="btn btn-lg btn-secondary px-3">${icon('tent')}集會所</button>
       ${q.type==='tutorial'?'':`<button data-act="retry" class="btn btn-lg btn-secondary px-3">${icon('retry')}再挑戰</button>`}
