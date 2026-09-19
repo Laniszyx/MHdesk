@@ -68,13 +68,12 @@ function hub(){
   const card=(act,ic,name,desc,badge='')=>menuBtn({act, icon:ic, name, desc, badge});
   page({title:'集會所', icon:'tent', sub:`${ch.name}・${ch.sub}`, back:'go-menu', right:`<button data-act="go" data-to="settings" data-arg="storyHub" class="btn btn-icon" aria-label="設定">${icon('settings')}</button>`, body:`
     <div class="panel p-3 mt-1 flex items-center gap-3">
-      <div class="tile lg">${avatar(s.hunter.icon)}</div>
       <div class="flex-1 min-w-0">
         <div class="font-black text-base truncate">${esc(s.hunter.name)}</div>
         <div class="text-[11px] text-gray-400 flex flex-wrap gap-x-2"><span>${icon(w.icon,'text-amber-300')} ${w.name} Lv${wl}（攻擊 ${w.atk+weaponBonus(wl)}）</span><span>${icon('armor','text-amber-300')} 防具 Lv${s.armor.lv}（HP ${w.hp+armorBonus(s.armor.lv)}）${s.armor.resist?'・抗'+RESISTS[s.armor.resist]:''}</span></div>
         <div class="mt-1">${hrBar()}</div>
       </div></div>
-    ${nq?`<button data-act="quest" data-id="${nq.id}" class="quest-card ${nq.urgent?'urgent':''} mt-3"><div class="qimg"><img src="${monsterByKey(nq.mons[0]).f}" alt=""></div><div class="flex-1 min-w-0"><div class="text-[10px] text-amber-300 font-bold">建議下一個任務</div><div class="font-black text-sm truncate">${nq.title}</div><div class="text-[10px] text-gray-400">${typeChip(nq)} ${stars(nq)}${nq.turns?'・'+nq.turns+' 回合':''}</div></div><span class="chev text-gray-500">${icon('chev')}</span></button>`:`<div class="panel p-3 mt-3 text-center text-sm text-amber-200"><div class="tile lg mx-auto mb-2">${micon('sunrise')}</div>所有主線任務都完成了！可以回任務板刷素材或挑戰更高評價。</div>`}
+    ${nq?`<button data-act="quest" data-id="${nq.id}" class="quest-card ${nq.urgent?'urgent':''} mt-3"><div class="flex-1 min-w-0"><div class="text-[10px] text-amber-300 font-bold">建議下一個任務</div><div class="font-black text-sm truncate">${nq.title}</div><div class="text-[10px] text-gray-400">${typeChip(nq)} ${stars(nq)}${nq.turns?'・'+nq.turns+' 回合':''}</div></div><div class="qimg"><img src="${monsterByKey(nq.mons[0]).f}" alt=""></div><span class="chev text-gray-500">${icon('chev')}</span></button>`:`<div class="panel p-3 mt-3 text-center text-sm text-amber-200"><div class="tile lg mx-auto mb-2">${micon('sunrise')}</div>所有主線任務都完成了！可以回任務板刷素材或挑戰更高評價。</div>`}
     <div class="space-y-3 mt-3">
       ${card('board','scroll','任務板',`${CHAPTERS.filter(c=>L.chapterUnlocked(s,c.id)).length}/${CHAPTERS.length} 章節開放・已完成 ${Object.keys(s.cleared).length}/${QUESTS.length}`)}
       ${card('forge','anvil','工房','強化武器與防具、製作卡牌',craft?`<span class="chip bg-amber-500 text-black">可製作 ${craft}</span>`:'')}
@@ -100,12 +99,12 @@ function board(){
   const list=questsOf(boardCh).map(q=>{
     const ok=L.questUnlocked(s,q), c=s.cleared[q.id], m=monsterByKey(q.mons[q.mons.length-1]);
     return `<button data-act="quest" data-id="${q.id}" class="quest-card ${q.urgent?'urgent':''} ${ok?'':'locked'}">
-      <div class="qimg"><img src="${m.f}" alt="">${q.mons.length>1?`<span class="tier bg-fuchsia-700 text-white">×${q.mons.length}</span>`:''}</div>
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-1">${typeChip(q)}<span class="text-[10px] text-gray-400">${stars(q)}</span>${c?`<span class="ml-auto text-[10px] text-green-300 inline-flex items-center gap-0.5">${icon('check')}${c.clears} 次・<span class="rank rank-${c.rank}">${c.rank}</span></span>`:''}</div>
         <div class="font-black text-sm truncate mt-0.5">${ok?'':icon('lock','text-gray-400')+' '}${q.title}</div>
         <div class="text-[10px] text-gray-400 truncate">${ok?`${q.turns?icon('hourglass')+' '+q.turns+' 回合・':''}委託：${q.client}`:L.lockReason(s,q)}</div>
-      </div></button>`; }).join('');
+      </div>
+      <div class="qimg"><img src="${m.f}" alt="">${q.mons.length>1?`<span class="tier bg-fuchsia-700 text-white">×${q.mons.length}</span>`:''}</div></button>`; }).join('');
   page({title:'任務板', icon:'scroll', sub:`${ch.name}・${ch.sub}・建議 HR ${ch.hr}`, back:'to-hub', body:`<div class="tabs my-2">${tabs}</div><div class="space-y-2">${list}</div>`});
 }
 on('board-ch', d => { boardCh=+d.ch; sfx('tap'); board(); });

@@ -111,7 +111,6 @@ export function render(){
     const on=B.cur===h.id, dead=!E.alive(h);
     const extra=[h.weapon.id==='ls'?`<span class="text-sky-300">練氣 ${'●'.repeat(h.spirit)}${'○'.repeat(3-h.spirit)}</span>`:'', h.dashBuff?`<span class="text-lime-300" title="強走藥">${icon('flask')}</span>`:''].filter(Boolean).join('');
     return `<div data-act="hunter-select" data-i="${h.id}" class="hunter-card ${on&&!solo?'on':''} ${dead?'dead':''}">
-      <span class="tile sm" style="border-color:${h.color==='red'?'#8a2e24':'#3f5f96'}">${avatar(h.icon)}</span>
       <div class="flex-1 min-w-0">
         <div class="hc-name"><span class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</span><span class="hc-hp">${Math.max(0,h.hp)}/${h.maxHp}</span></div>
         <div class="bar bar-green mt-1" style="height:6px"><div style="width:${Math.max(0,h.hp/h.maxHp*100)}%"></div></div>
@@ -156,7 +155,7 @@ function renderHand(){
     const placing=B.placement&&B.placement.idx===i;
     const name=card.id==='skill'?h.weapon.skill.name:card.name;
     return `<div class="card ${card.type}" ${placing?'style="outline:2px solid #fde68a"':''}>
-      <button class="chead" data-act="card-info" data-i="${i}" aria-label="${name} 說明"><span class="cic">${micon(card.glyph)}</span><span class="cname">${name}</span></button>
+      <button class="chead" data-act="card-info" data-i="${i}" aria-label="${name} 說明"><span class="cname">${name}</span></button>
       <div class="brief">${cardBrief(card,h)}</div>
       <button class="cbtn play" data-act="card-play" data-i="${i}" ${ok&&!B.over?'':'disabled'}>${ok?'打出':hint}</button>
       <button class="cbtn dash" data-act="card-dash" data-i="${i}" ${B.over?'disabled':''}>棄牌 +1步</button></div>`;

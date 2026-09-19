@@ -94,3 +94,8 @@ body .bg-black\/40,body .bg-black\/30{background:rgba(15,20,12,.55)}
 .hand-4 .card .cic{width:20px;height:20px;font-size:16px}
 .hand-4 .card .cname{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hc-hp{font-size:10px}
+/* 精簡：拿掉裝飾用圖示方塊後的間距 */
+.menu-btn{padding:14px 16px}
+.quest-card .qimg{margin-left:auto}
+.card .chead{min-height:20px}
+.hud-name{font-size:17px}

@@ -38,7 +38,7 @@ export function titleScreen(){
 
 /* ---------- 共用：選單按鈕（左圖示、標題、說明、右箭頭） ---------- */
 export const menuBtn = ({act='go', to='', icon:ic, name, desc='', main=false, badge='', attrs=''}) =>
-  `<button data-act="${act}" ${to?`data-to="${to}"`:''} ${attrs} class="menu-btn ${main?'main':''}"><span class="tile ${main?'gold':''}">${micon(ic)}</span><span class="flex-1 min-w-0"><span class="block font-black">${name}</span>${desc?`<span class="block text-[11px] text-gray-400 truncate">${desc}</span>`:''}</span>${badge}<span class="chev">${icon('chev')}</span></button>`;
+  `<button data-act="${act}" ${to?`data-to="${to}"`:''} ${attrs} class="menu-btn ${main?'main':''}"><span class="flex-1 min-w-0"><span class="block font-black">${name}</span>${desc?`<span class="block text-[11px] text-gray-400 truncate">${desc}</span>`:''}</span>${badge}<span class="chev">${icon('chev')}</span></button>`;
 
 /* ---------- 主選單 ---------- */
 export function menuScreen(){
