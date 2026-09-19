@@ -44,8 +44,8 @@ export const QUESTS = [
   {id:'q1-6',ch:1,type:'timed',title:'刺眼的求偶舞',client:'觀星隊',
     text:'「眩鳥一直在閃光，害我們觀測不了星星！\n　10 回合內解決牠。被閃到會暈，別站太近。」',
     mons:['image023'],turns:10,reward:{bug:3,powder:1},exp:14},
-  {id:'q1-U',ch:1,type:'hunt',urgent:true,req:4,title:'【緊急】暴走的蠻顎',client:'調查團團長',
-    text:'「蠻顎龍闖進了古代樹森林，見什麼咬什麼！\n　牠鼻翼一張開就會狂暴，要速戰速決。成功了就讓你去荒地。」',
+  {id:'q1-U',ch:1,type:'hunt',urgent:true,req:4,title:'【緊急】飢餓的暴君',client:'調查團團長',
+    text:'「恐暴龍闖進了古代樹森林，見什麼吃什麼！\n　牠狂暴時的龍屬性吐息非常危險，速戰速決。成功了就讓你去荒地。」',
     mons:['image033'],turns:20,reward:{iron:2,powder:2,crystal:1},exp:30},
 
   /* ---------- 第二章 大蟻塚荒地 ---------- */
@@ -70,8 +70,8 @@ export const QUESTS = [
   {id:'q2-7',ch:2,type:'hunt',title:'黑色的暴君',client:'商隊領隊',
     text:'「黑角龍把商隊的營地整個掀翻了……\n　牠比角龍更兇，衝撞會把人撞飛。」',
     mons:['image006'],turns:20,reward:{crystal:1,iron:2},exp:28},
-  {id:'q2-U',ch:2,type:'hunt',urgent:true,req:5,title:'【緊急】餓鬼降臨',client:'調查團團長',
-    text:'「恐暴龍出現了！牠什麼都吃，連其他魔物都不放過。\n　狂暴後的龍屬性吐息非常危險。其他人撤離，交給你了。」',
+  {id:'q2-U',ch:2,type:'hunt',urgent:true,req:5,title:'【緊急】咆哮的巨顎',client:'調查團團長',
+    text:'「蠻顎龍出現了！牠的巨顎見人就咬，噴火範圍又廣。\n　牠鼻翼一張開就會狂暴，其他人撤離，交給你了。」',
     mons:['image014'],turns:24,reward:{crystal:2,powder:2},exp:50},
 
   /* ---------- 第三章 陸珊瑚台地・瘴氣之谷 ---------- */
@@ -101,11 +101,11 @@ export const QUESTS = [
     mons:['image009'],turns:26,reward:{crystal:3,powder:2},exp:80},
 
   /* ---------- 第四章 龍結晶之地 ---------- */
-  {id:'q4-1',ch:4,type:'hunt',title:'結晶地的熔岩賊',client:'龍結晶調查員',
-    text:'「岩賊龍會把石頭嚼一嚼再噴出來爆炸。\n　隨機落下的岩漿很難躲，看清楚紅色格子。」',
+  {id:'q4-1',ch:4,type:'hunt',title:'雪地下的埋伏',client:'龍結晶調查員',
+    text:'「凍魚龍會潛進雪裡，從腳下衝出來偷襲。\n　被凍到會變慢，保持移動別停下來。」',
     mons:['image017'],turns:16,reward:{powder:2,iron:1},exp:45},
-  {id:'q4-2',ch:4,type:'hunt',title:'冰原的遊魚',client:'龍結晶調查員',
-    text:'「凍魚龍會潛進雪裡，從腳下衝出來。\n　被凍到會變慢，保持移動。」',
+  {id:'q4-2',ch:4,type:'hunt',title:'冰原的獠牙',client:'龍結晶調查員',
+    text:'「冰牙龍的獠牙又長又利，撲過來就是一口。\n　牠甩尾範圍很大，打完技能記得閃開。」',
     mons:['image018'],turns:16,reward:{honey:2,crystal:1},exp:45},
   {id:'q4-3',ch:4,type:'capture',title:'熔岩中的影子',client:'生態研究班',
     text:'「熔岩龍在岩漿裡游泳！我們一定要活捉一隻研究。\n　牠會從岩漿衝出來燒人，陷阱擺好等牠。」',
@@ -114,7 +114,7 @@ export const QUESTS = [
     text:'「爆鎚龍背上都是會爆炸的岩石。\n　14 回合內討伐。牠抖落的爆炸岩也能拿來炸牠！」',
     mons:['image013'],turns:14,reward:{powder:3},exp:60},
   {id:'q4-5',ch:4,type:'seq',title:'爆炸連鎖',client:'工房老闆',
-    text:'「岩賊龍和爆鱗龍一起在結晶地搗亂，到處都在爆炸。\n　爆鱗龍會引爆場上所有爆彈，別站在爆彈旁邊！」',
+    text:'「凍魚龍和爆鱗龍一起在結晶地搗亂，腳下要注意。\n　爆鱗龍會引爆場上所有爆彈，別站在爆彈旁邊！」',
     mons:['image017','image025'],turns:30,hpMul:.75,reward:{powder:3,crystal:1},exp:70},
   {id:'q4-6',ch:4,type:'hunt',title:'移動的火山',client:'調查團團長',
     text:'「熔山龍正朝著龍結晶之地前進，所到之處都是岩漿。\n　牠行動很慢，但範圍攻擊很廣。」',
