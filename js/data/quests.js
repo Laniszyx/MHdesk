@@ -124,8 +124,8 @@ export const QUESTS = [
     mons:['image028'],turns:26,reward:{crystal:3,powder:3},exp:110},
 
   /* ---------- 終章 古龍渡 ---------- */
-  {id:'q5-1',ch:5,type:'hunt',title:'鋼之暴風',client:'古龍觀測所',
-    text:'「鋼龍的龍捲風把觀測所的屋頂掀了。\n　被風吹到會被推開，別站在地圖邊緣。」',
+  {id:'q5-1',ch:5,type:'hunt',title:'黑翼的低語',client:'古龍觀測所',
+    text:'「黑蝕龍的鱗粉會讓人感染異獸因子，中毒後要盡快解毒。\n　牠的尖嘯範圍很廣，聽到就準備硬扛暈眩。」',
     mons:['image027'],turns:28,reward:{crystal:2,iron:3},exp:110},
   {id:'q5-2',ch:5,type:'hunt',title:'青炎之妃',client:'古龍觀測所',
     text:'「炎妃龍的熱風會覆蓋整個區域，所有人都會灼燒。\n　帶活力劑去吧。」',
