@@ -45,7 +45,7 @@ const STEPS = [
     gate:(a,i)=>a==='play'&&i.card.id==='basic'?true:'先打出「基礎斬擊」', until:(n,i)=>n==='play'&&i.card.id==='basic'},
   {text:()=>'命中！動完之後要按紅色的<b>結束回合</b>，魔物才會行動。<br>'+DO('按「結束回合」。'), hl:()=>$('btn-end'), gate:only(['endTurn'],'按紅色的「結束回合」'), until:n=>n==='turnStart'},
   {text:()=>'注意！<b>紅色斜紋</b>是搔鳥這回合會打到的格子。<br>你現在就站在裡面！', hl:()=>$('grid-wrap'), next:true, gate:blockAll('先看完說明，按「下一步」')},
-  {text:()=>'步數不夠用時，可以把暫時用不到的牌丟掉換 <b>+1 步</b>。<br>'+DO('按攻擊牌下方的<b>「棄牌 +1步」</b>。')+'（防禦牌先留著，等等要用）',
+  {text:()=>'步數不夠用時，可以把暫時用不到的牌丟掉換 <b>+1 步</b>。<br>'+DO('按攻擊牌右上角的<b>「+1步」</b>。')+'（防禦牌先留著，等等要用）',
     enter:()=>{ if(handIdx('heavy')<0&&handIdx('basic')<0) ensureCard('heavy'); },
     hl:()=>{ const i=[handIdx('heavy'),handIdx('basic')].find(x=>x>=0); return document.querySelector(`#hand-container [data-act="card-dash"][data-i="${i}"]`); },
     gate:(a,i)=>a==='discard'?(['basic','heavy'].includes(i.card.id)||'先丟攻擊牌，翻滾和舉盾等一下要用'):'按攻擊牌的「棄牌 +1步」',

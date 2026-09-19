@@ -34,31 +34,26 @@
       </div>
       <div class="tile mon-tile"><img id="hud-mon-img" alt=""></div>
     </div>
-    <div id="monster-intent-desc" class="intent"></div>
+    <button id="monster-intent-desc" class="intent" data-act="intent-info"></button>
     <span id="monster-intent-name" class="hidden"></span>
   </div>
 
-  <main class="flex-1 min-h-0 flex items-center justify-center px-2 relative">
+  <main class="flex-1 min-h-0 flex items-center justify-center px-1 relative">
     <div id="grid-wrap" class="relative" style="aspect-ratio:1.18;width:100%;max-width:560px;max-height:100%;">
-      <div id="grid-container" class="absolute inset-0 rounded-2xl border border-gray-800 bg-[#14100d] shadow-[inset_0_0_40px_rgba(0,0,0,.6)]"></div>
+      <div id="grid-container" class="absolute inset-0"></div>
     </div>
+    <div id="placement-hint" class="hidden"><svg class="ic animate-pulse"><use href="#i-pin"/></svg>點相鄰的發亮格放置 <button data-act="cancel-place" class="btn btn-link">取消</button></div>
+    <div id="mini-log" data-act="drawer" data-name="log"></div>
   </main>
-
-  <div id="placement-hint" class="hidden shrink-0 mx-2 mb-1 flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-300"><svg class="ic animate-pulse"><use href="#i-pin"/></svg>點擊相鄰的發亮空格放置道具 <button data-act="cancel-place" class="btn btn-link">取消</button></div>
-  <div id="mini-log" data-act="drawer" data-name="log"></div>
 
   <footer class="dock">
     <div class="dock-row">
       <div id="hunter-cards" class="flex-1 min-w-0 flex gap-2"></div>
+      <button data-act="gather" id="btn-gather" class="hidden btn btn-secondary btn-side"><svg class="ic"><use href="#i-herb"/></svg>採集</button>
+      <button data-act="undo" id="btn-undo" class="hidden btn btn-secondary btn-side" aria-label="撤回移動"><svg class="ic"><use href="#i-undo"/></svg>撤回</button>
       <button data-act="end-turn" id="btn-end" class="btn btn-danger btn-end"><svg class="ic"><use href="#i-hourglass"/></svg>結束回合</button>
     </div>
-    <div class="dock-meta">
-      <span class="counts">牌庫 <b id="deck-count">0</b><span class="dot">·</span>棄牌 <b id="discard-count">0</b><span class="hidden">手牌 <span id="hand-count">0</span>/<span id="hand-max">3</span> 消耗 <span id="removed-count">0</span></span></span>
-      <div class="flex gap-1.5 shrink-0">
-        <button data-act="gather" id="btn-gather" class="hidden btn btn-sm btn-secondary text-lime-200"><svg class="ic"><use href="#i-herb"/></svg>採集</button>
-        <button data-act="undo" id="btn-undo" class="hidden btn btn-sm btn-secondary"><svg class="ic"><use href="#i-undo"/></svg>撤回移動</button>
-      </div>
-    </div>
+    <span class="hidden">牌庫 <b id="deck-count">0</b> 棄牌 <b id="discard-count">0</b> 手牌 <span id="hand-count">0</span>/<span id="hand-max">3</span> 消耗 <span id="removed-count">0</span></span>
     <div id="hand-container" class="hand"></div>
   </footer>
 </div>
@@ -72,7 +67,7 @@
 <!-- 抽屜：日誌 -->
 <div id="backdrop-log" class="backdrop" data-act="drawer" data-name="log"></div>
 <div id="drawer-log" class="drawer p-3 flex flex-col" style="height:55dvh">
-  <div class="flex justify-between items-center mb-2"><b class="text-sm flex items-center gap-2"><svg class="ic text-amber-400"><use href="#i-log"/></svg>戰鬥日誌</b><button data-act="drawer" data-name="log" class="btn btn-icon" aria-label="關閉"><svg class="ic"><use href="#i-close"/></svg></button></div>
+  <div class="flex justify-between items-center mb-2"><b class="text-sm flex items-center gap-2"><svg class="ic text-amber-400"><use href="#i-log"/></svg>戰鬥日誌<span id="log-counts" class="text-[11px] font-bold text-gray-500 ml-2"></span></b><button data-act="drawer" data-name="log" class="btn btn-icon" aria-label="關閉"><svg class="ic"><use href="#i-close"/></svg></button></div>
   <div id="battle-log" class="flex-1 bg-black/40 rounded-xl p-2 overflow-y-auto text-xs space-y-1.5 log-box"></div>
 </div>
 

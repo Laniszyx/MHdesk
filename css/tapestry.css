@@ -99,3 +99,60 @@ body .bg-black\/40,body .bg-black\/30{background:rgba(15,20,12,.55)}
 .quest-card .qimg{margin-left:auto}
 .card .chead{min-height:20px}
 .hud-name{font-size:17px}
+
+/* ===== 戰鬥畫面精簡版 ===== */
+.hud{gap:5px}
+.intent{width:100%;text-align:left;cursor:pointer}
+.intent .rng{color:#e3d7c2;font-size:12px;flex-shrink:0;margin-left:2px}
+.intent .more{margin-left:auto;color:#b3a48a;font-size:14px;flex-shrink:0}
+.intent .ic{font-size:14px}
+/* 棋盤：不再有外框，直接浮在布面上；訊息浮在棋盤下緣 */
+#grid-container{background:none;border:0;box-shadow:none}
+#mini-log{position:absolute;left:50%;bottom:6px;transform:translateX(-50%) translateY(6px);max-width:92%;margin:0;padding:5px 12px;border-radius:999px;
+  background:rgba(20,26,17,.88);border:1px solid var(--line2);color:#e3d7c2;font-size:11.5px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:40}
+#mini-log.show{opacity:1;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+#mini-log .alert{color:#e6bd5c}
+#placement-hint{position:absolute;left:50%;top:6px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;
+  background:rgba(58,44,20,.92);border:1px solid var(--amber);color:#f0d493;font-size:11.5px;font-weight:800;z-index:40;white-space:nowrap}
+#placement-hint .btn-link{min-height:24px;color:#e3d7c2}
+/* 底部操作區 */
+.dock{gap:8px;padding-top:12px}
+.hunter-card{min-height:52px;padding:6px 10px;gap:10px}
+.hc-name{font-size:13px}
+.hc-name .hc-wpn{font-size:10.5px;color:#a89a82;margin-left:6px;flex-shrink:0}
+.hc-name .hc-hp{margin-left:auto;font-size:13px;color:#efe6cf}.hc-name .hc-hp i{font-style:normal;font-size:10.5px;color:#a89a82}
+.hc-meta{margin-top:4px}
+.hc-step{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:40px;line-height:1;color:var(--amber)}
+.hc-step b{font-size:22px;font-weight:900}.hc-step span{font-size:10px;font-weight:800;margin-top:2px;color:#b3a48a}
+.hc-step.zero{color:#7f7462}
+.btn-side{padding:0 10px;min-height:52px;flex-direction:column;gap:2px;font-size:11px}
+.btn-end{min-height:52px}
+/* 手牌：名稱 + 右上 +1步、一行簡述、一顆按鈕 */
+.hand{min-height:108px;gap:7px}
+.card{padding:7px 8px 7px;gap:4px}
+.card .chead{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.card .cname{font-size:12px;font-weight:900;color:#f6efe2;text-align:left;line-height:1.15;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0}
+.card .cdash{flex-shrink:0;font-size:9.5px;font-weight:900;color:#e3d7c2;background:rgba(0,0,0,.35);border:1px solid rgba(240,225,190,.25);border-radius:999px;padding:2px 6px;line-height:1;min-height:20px}
+.card .cdash:active{background:rgba(0,0,0,.6)}
+.card .cdash:disabled{opacity:.35}
+.card .brief{font-size:11px;line-height:1.35;color:#e3d7c2;flex:1;-webkit-line-clamp:2}
+.card .cbtn.play{min-height:34px;font-size:12.5px}
+.hand-4 .card{padding:6px 6px 6px}
+.hand-4 .card .cname{font-size:11px}
+.hand-4 .card .brief{font-size:10.5px}
+.hand-4 .card .cdash{font-size:9px;padding:2px 5px}
+.fs-lg .card .cname{font-size:13px}.fs-lg .hc-step b{font-size:24px}
+/* 四張手牌：名稱要放得下 */
+.hand-4 .card{padding:6px 6px 6px}
+.hand-4 .card .chead{gap:3px}
+.hand-4 .card .cname{font-size:10.5px;letter-spacing:-.01em}
+.hand-4 .card .cdash{font-size:8.5px;padding:2px 4px;min-height:18px}
+
+/* 手牌：名稱整行、底部「打出」＋「+1步」並排 */
+.card .cname{display:block;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left}
+.card .cfoot{display:flex;gap:4px;align-items:stretch}
+.card .cfoot .cbtn.play{flex:1;min-width:0}
+.card .cdash{width:34px;flex:0 0 34px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1;font-size:11px;padding:0;min-height:34px;background:rgba(0,0,0,.35);border:1px solid rgba(240,225,190,.25);color:#e3d7c2;font-weight:900}
+.card .cdash small{font-size:8px;font-weight:800;color:#b3a48a;margin-top:1px}
+.hand-4 .card .cname{font-size:11px;letter-spacing:0}
+.hand-4 .card .cdash{width:28px;flex-basis:28px;font-size:10px}
