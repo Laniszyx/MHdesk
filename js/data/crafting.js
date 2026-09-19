@@ -24,7 +24,7 @@ export const CARD_RECIPES = {
   potion:{start:2,max:5,cost:{herb:2,honey:1}},
   meat:{start:1,max:3,cost:{rawmeat:2}},
   flash:{start:1,max:3,cost:{bug:2}},
-  trap:{start:1,max:3,cost:{web:2,iron:1}},
+  trap:{start:2,max:4,cost:{web:2,iron:1}},
   shock:{start:0,max:2,cost:{web:1,image024r:1}},
   bomb:{start:1,max:3,cost:{powder:2,iron:1}},
   dash:{start:0,max:2,cost:{honey:2,bug:1}},

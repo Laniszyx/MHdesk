@@ -1,0 +1,64 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>平衡模擬</title></head>
+<body style="margin:0;background:#222;color:#0f0;font:12px monospace"><pre id="out">RUNNING</pre>
+<script type="module">
+/* 用簡單 AI 跑劇情任務，估計單人勝率與回合數。用法：dev/sim.html?n=20&w=gs */
+import * as E from '../js/engine/battle.js';
+import { B } from '../js/engine/battle.js';
+import { getNeighbors, getDistance } from '../js/engine/hex.js';
+import { QUESTS } from '../js/data/quests.js';
+import { questBattleCfg } from '../js/story-logic.js';
+import { newStory } from '../js/save.js';
+const q=new URLSearchParams(location.search), N=+(q.get('n')||20), WEAPONS=(q.get('w')||'gs,sns,lance,hammer,ls').split(',');
+const out=[]; const log=s=>{out.push(s);document.getElementById('out').textContent=out.join('\n');};
+E.setHooks({defend:async(h,d,s,o)=>o.dodge?'dodge':o.shield?'shield':'take'});
+const gear={1:[1,1],2:[2,2],3:[3,3],4:[3,3],5:[4,4]};         // 章節 → [武器Lv, 防具Lv]
+const extra={1:{},2:{knife:2,potion:1},3:{knife:2,potion:2,heavy:1,dodge:1},4:{knife:3,potion:2,heavy:2,dodge:2,shield:1,skill:1,cure:1},5:{knife:3,potion:3,heavy:2,dodge:2,shield:2,skill:2,cure:2,cannon:1}};
+const safe=c=>!B.danger.some(z=>z.x===c.x&&z.y===c.y);
+async function botTurn(){
+  const h=B.hunters[0];
+  for(let guard=0;guard<30&&!B.over;guard++){
+    const m=B.mon, alive=E.monAlive();
+    // 採集
+    if(B.cfg.objective==='gather'&&h.move>0&&B.gathers.some(g=>g.x===h.x&&g.y===h.y)){E.gatherHere();continue;}
+    // 出牌
+    let played=false;
+    for(let i=0;i<B.hand.length;i++){const c=B.hand[i];if(!E.canPlay(c,h).ok)continue;
+      if(c.id==='potion'&&h.maxHp-h.hp<4)continue; if(c.id==='cure'&&!Object.values(h.st).some(v=>v>0)&&h.maxHp-h.hp<3)continue;
+      if(['flash','meat','dash','bomb'].includes(c.id))continue;
+      if((c.id==='trap'||c.id==='shock')&&!(alive&&(B.cfg.objective==='capture'?m.hp<=m.maxHp*.3&&getNeighbors(h.x,h.y).some(n=>n.x===m.px&&n.y===m.py):true)))continue;
+      if(B.cfg.objective==='capture'&&(c.type==='attack'||c.type==='skill')&&m.hp<=m.maxHp*.3)continue;
+      await E.playCard(i);played=true;
+      if(B.placement){const ph=getNeighbors(h.x,h.y).find(c=>c.x===m.px&&c.y===m.py&&!E.isOccupied(c.x,c.y)&&!E.hasItemAt(c.x,c.y));if(ph){await E.clickCell(ph.x,ph.y);break;}const n=getNeighbors(h.x,h.y).filter(c=>!E.isOccupied(c.x,c.y)&&!E.hasItemAt(c.x,c.y)).sort((a,b)=>getDistance(a.x,a.y,m.px,m.py)-getDistance(b.x,b.y,m.px,m.py))[0];if(n)await E.clickCell(n.x,n.y);else E.cancelPlacement();}
+      break;}
+    if(played)continue;
+    // 移動
+    const target=B.cfg.objective==='gather'&&B.gathers.length?B.gathers.slice().sort((a,b)=>getDistance(h.x,h.y,a.x,a.y)-getDistance(h.x,h.y,b.x,b.y))[0]:alive?{x:m.px>=0?m.px:m.x,y:m.py>=0?m.py:m.y}:null;
+    const opts=getNeighbors(h.x,h.y).filter(c=>!E.isOccupied(c.x,c.y)&&!E.hasItemAt(c.x,c.y));
+    const here=safe(h), d0=target?getDistance(h.x,h.y,target.x,target.y):0;
+    let best=null;
+    if(!here) best=opts.filter(safe).sort((a,b)=>(target?getDistance(a.x,a.y,target.x,target.y):0)-(target?getDistance(b.x,b.y,target.x,target.y):0))[0];
+    else if(target&&d0>(B.cfg.objective==='gather'?0:1)) best=opts.filter(c=>safe(c)&&getDistance(c.x,c.y,target.x,target.y)<d0)[0];
+    if(best&&h.move>0){await E.clickCell(best.x,best.y);continue;}
+    if(best&&h.move===0){const di=B.hand.findIndex(c=>c.type!=='defend'&&!E.canPlay(c,h).ok);if(di>=0){E.discardForMove(di);continue;}}
+    if(!here&&h.move===0){const fi=B.hand.findIndex(c=>c.id==='flash');if(fi>=0){await E.playCard(fi);continue;}}
+    break;
+  }
+  if(!B.over) await E.endTurn();
+}
+async function runQuest(qq,weapon){
+  const st=newStory({weapon});const [wl,al]=gear[qq.ch];st.weapons[weapon]=wl;st.armor.lv=al;
+  for(const [k,n] of Object.entries(extra[qq.ch]||{})){st.owned[k]=(st.owned[k]||0)+n;st.deck[k]=(st.deck[k]||0)+n;}
+  E.startBattle(questBattleCfg(st,qq));
+  for(let t=0;t<80&&!B.over;t++) await botTurn();
+  return B.result||{win:false,turns:99,carts:0};
+}
+for(const w of WEAPONS){
+  log(`== ${w} ==`);
+  for(const qq of QUESTS.filter(x=>x.type!=='tutorial')){
+    let win=0,turns=0,carts=0;
+    for(let i=0;i<N;i++){const r=await runQuest(qq,w);if(r.win){win++;turns+=r.turns;}carts+=r.carts;}
+    log(`${qq.id.padEnd(5)} ${qq.type.padEnd(8)} win ${String(Math.round(win/N*100)).padStart(3)}%  avgTurns ${(win?turns/win:0).toFixed(1).padStart(5)}/${qq.turns}  carts ${(carts/N).toFixed(2)}  ${qq.title}`);
+  }
+}
+log('DONE');
+</script></body></html>

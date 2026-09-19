@@ -113,7 +113,7 @@ input[type=range]{accent-color:var(--amber)}
 .tabs button{flex-shrink:0;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:700;background:var(--panel2);border:1px solid var(--line);color:#cfd5df}
 .tabs button.on{background:var(--amber);color:#1a1200;border-color:var(--amber)}
 .tabs button:disabled{opacity:.4}
-.quest-scroll{background:linear-gradient(180deg,#2b2417,#1c180f);border:1px solid #6b5220;border-radius:14px;padding:12px;white-space:pre-line}
+.quest-scroll{background:linear-gradient(180deg,#2b2417,#1c180f);border:1px solid #6b5220;border-radius:14px;padding:12px}
 
 /* 戰鬥：橫幅、暫停、教學遮罩 */
 #banner{position:fixed;left:0;right:0;top:38%;z-index:70;display:flex;flex-direction:column;align-items:center;pointer-events:none;opacity:0;transform:scaleY(.2);transition:opacity .15s,transform .15s}

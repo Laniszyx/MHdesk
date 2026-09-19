@@ -4,6 +4,8 @@ import * as E from './engine/battle.js';
 import { B } from './engine/battle.js';
 import { registerNav, titleScreen, menuScreen, settingsScreen, recordsScreen, go } from './ui/menu.js';
 import './ui/free.js';
+import { _debug as storyDebug } from './ui/story.js';
+import { tutState } from './ui/tutorial.js';
 import { $, showScreen, setInstant, toast } from './ui/dom.js';
 import { launchBattle } from './ui/battle-view.js';
 import * as hex from './engine/hex.js';
@@ -11,13 +13,12 @@ import { CARDS_DB } from './data/cards.js';
 
 registerNav({
   title:titleScreen, menu:menuScreen, settings:settingsScreen, records:recordsScreen,
-  storyNew:()=>toast('劇情模式即將推出'), storyContinue:()=>toast('劇情模式即將推出'),
 });
 
 document.body.classList.toggle('fs-lg', S.settings.font==='lg');
 
 /* 除錯與測試：網址 #quick 直接開一場自由對戰，#menu 直接到主選單…… */
-window.__mh = {S, E, B, launchBattle, setInstant, hex, CARDS_DB};
+window.__mh = {S, E, B, launchBattle, setInstant, hex, CARDS_DB, story:storyDebug, tutState};
 const hash = location.hash.replace('#','');
 if(hash==='quick' || hash==='quick1'){
   launchBattle({mode:'free', hunters:hash==='quick1'?[{name:'大劍',icon:'🗡️',weapon:'gs'}]:[{name:'大劍',icon:'🗡️',weapon:'gs'},{name:'片手劍',icon:'🛡️',weapon:'sns'}],
@@ -28,4 +29,5 @@ else if(hash==='menu') menuScreen();
 else if(hash==='settings') settingsScreen();
 else if(hash==='records') recordsScreen();
 else if(hash==='free') go('free');
+else if(hash==='story') go(S.story?'storyContinue':'storyNew');
 else titleScreen();
