@@ -267,8 +267,7 @@ function questResult(q, r){
   const m=r.mon;
   page({title:'任務結算', sub:q.title, body:`
     <div class="text-center pt-2">
-      <div class="w-24 h-24 mx-auto rounded-2xl bg-white p-2 mb-2 shadow-2xl"><img src="${m.img}" class="w-full h-full object-contain" alt=""></div>
-      <div class="hero-ic mb-2">${micon(hero[0])}</div><h2 class="text-3xl font-black ${r.win?'text-green-400':'text-red-500'}">${title}</h2>
+      <div class="w-24 h-24 mx-auto rounded-2xl bg-white p-2 mb-3 shadow-2xl relative"><img src="${m.img}" class="w-full h-full object-contain" alt=""><span class="hero-badge">${micon(hero[0])}</span></div><h2 class="text-3xl font-black ${r.win?'text-green-400':'text-red-500'}">${title}</h2>
       <p class="text-gray-400 text-xs mt-1">${r.win?'':r.reason}</p>
       ${r.win&&q.type!=='tutorial'?`<div class="rank rank-${res.rank} text-6xl mt-1">${res.rank}</div>`:''}
     </div>

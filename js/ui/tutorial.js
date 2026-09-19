@@ -36,19 +36,19 @@ const only = (actions, msg) => (a) => actions.includes(a) ? true : msg;
 /* ---------- 步驟 ---------- */
 const STEPS = [
   {text:()=>`歡迎來到訓練場，${h().name}！我是教官。<br>今天的對手是<b>搔鳥</b>，牠很弱，放心練習。<br>跟著黃框一步一步來就好。`, next:true, gate:blockAll('先看完說明，按「下一步」')},
-  {text:()=>'畫面上方是魔物的<b>血量</b>和<b>下一招預告</b>。<br>這回合搔鳥只是在觀察你，不會攻擊。', hl:()=>$('monster-intent-desc'), next:true, gate:blockAll('先看完說明，按「下一步」')},
+  {text:()=>'上方是魔物的<b>血量</b>與<b>下一招</b>，點一下看詳情。<br>這回合搔鳥只是在觀察你，不會攻擊。', hl:()=>$('monster-intent-desc').closest('.hud'), next:true, gate:blockAll('先看完說明，按「下一步」')},
   {text:()=>`<b>綠色格子</b>是你能走的地方，每格花 1 步。<br>你的${h().weapon.name}每回合有 <b>${h().maxMove} 步</b>。<br>${DO('走到搔鳥<b>旁邊的格子</b>！')}`,
     cells:()=>getNeighbors(h().x,h().y).filter(c=>getDistance(c.x,c.y,mon().x,mon().y)===1&&!E.isOccupied(c.x,c.y)),
     gate:(a,i)=>a==='move'?(getDistance(i.x,i.y,mon().x,mon().y)===1||'往黃框的格子走，要站在搔鳥旁邊'):a==='undo'||'先移動到搔鳥旁邊',
     until:()=>getDistance(h().x,h().y,mon().x,mon().y)===1},
-  {text:()=>`站在魔物<b>相鄰格</b>就能攻擊。<br>${DO('按「基礎斬擊」的<b>打出</b>！')}`, enter:()=>ensureCard('basic'), hl:()=>handEl('basic'),
+  {text:()=>`站在魔物<b>相鄰格</b>就能攻擊。點卡名可看完整說明。<br>${DO('按「基礎斬擊」的<b>打出</b>！')}`, enter:()=>ensureCard('basic'), hl:()=>handEl('basic'),
     gate:(a,i)=>a==='play'&&i.card.id==='basic'?true:'先打出「基礎斬擊」', until:(n,i)=>n==='play'&&i.card.id==='basic'},
   {text:()=>'命中！動完之後要按紅色的<b>結束回合</b>，魔物才會行動。<br>'+DO('按「結束回合」。'), hl:()=>$('btn-end'), gate:only(['endTurn'],'按紅色的「結束回合」'), until:n=>n==='turnStart'},
   {text:()=>'注意！<b>紅色斜紋</b>是搔鳥這回合會打到的格子。<br>你現在就站在裡面！', hl:()=>$('grid-wrap'), next:true, gate:blockAll('先看完說明，按「下一步」')},
-  {text:()=>'步數不夠用時，可以把暫時用不到的牌丟掉換 <b>+1 步</b>。<br>'+DO('按攻擊牌右上角的<b>「+1步」</b>。')+'（防禦牌先留著，等等要用）',
+  {text:()=>'步數不夠用時，可以把暫時用不到的牌丟掉換 <b>+1 步</b>。<br>'+DO('按攻擊牌右下角的<b>「+1步」</b>。')+'<br><span class="text-gray-400">防禦牌先留著，等等要用。</span>',
     enter:()=>{ if(handIdx('heavy')<0&&handIdx('basic')<0) ensureCard('heavy'); },
     hl:()=>{ const i=[handIdx('heavy'),handIdx('basic')].find(x=>x>=0); return document.querySelector(`#hand-container [data-act="card-dash"][data-i="${i}"]`); },
-    gate:(a,i)=>a==='discard'?(['basic','heavy'].includes(i.card.id)||'先丟攻擊牌，翻滾和舉盾等一下要用'):'按攻擊牌的「棄牌 +1步」',
+    gate:(a,i)=>a==='discard'?(['basic','heavy'].includes(i.card.id)||'先丟攻擊牌，翻滾和舉盾等一下要用'):'按攻擊牌右下角的「+1步」',
     until:n=>n==='discard'},
   {text:()=>DO('現在<b>走出紅色區域</b>！'),
     cells:()=>getNeighbors(h().x,h().y).filter(c=>!inDanger(c)&&!E.isOccupied(c.x,c.y)),
@@ -58,14 +58,14 @@ const STEPS = [
   {text:()=>'下一招<b>猛撲</b>會鎖定你站的格子。<br>這次故意不讓你躲，來學<b>防禦牌</b>。<br>'+DO('直接按「結束回合」。'), hl:()=>$('btn-end'),
     enter:()=>{ ensureCard('dodge'); ensureCard('shield'); }, gate:only(['endTurn'],'這次先不要動，直接結束回合'), until:n=>n==='endTurn'},
   {text:()=>'魔物要打到你時，手上有<b>翻滾迴避</b>或<b>舉盾掩護</b>就會跳出這個視窗。<br>翻滾：完全閃躲。舉盾：減少傷害。<br>'+DO('選一個吧！'), top:true, gate:blockAll(''), until:n=>n==='defend'},
-  {text:()=>`每把武器都有<b>職業技能</b>（耗 1 步）。<br>你的是【${h().weapon.skill.name}】：${h().weapon.skill.desc.replace('{dmg}',h().skillDmg)}<br>${DO('打出技能卡！')}`,
+  {text:()=>`每把武器都有<b>職業技能</b>（耗 1 步）。<br>你的是【${h().weapon.skill.name}】：${h().weapon.skill.brief.replace('{dmg}',h().skillDmg)}<br>${DO('打出技能卡！')}`,
     wait:n=>n==='turnStart', enter:()=>ensureCard('skill'), hl:()=>handEl('skill'),
     cells:()=>getDistance(h().x,h().y,mon().x,mon().y)>1?getNeighbors(mon().x,mon().y).filter(c=>getDistance(c.x,c.y,h().x,h().y)===1&&!E.isOccupied(c.x,c.y)):[],
     gate:(a,i)=>a==='play'&&i.card.id==='skill'?true:a==='move'||a==='discard'||a==='undo'||'先打出職業技能卡', until:(n,i)=>n==='play'&&i.card.id==='skill'},
   {text:()=>'<b>陷阱</b>放在相鄰空格，魔物踩到會受傷並中斷攻擊。<br>魔物 HP 剩 30% 以下時踩到還能直接<b>捕獲</b>！<br>'+DO('打出「落穴陷阱」，再點旁邊發亮的空格。'),
     enter:()=>ensureCard('trap'), hl:()=>B.placement?$('grid-wrap'):handEl('trap'),
     gate:(a,i)=>(a==='play'&&i.card.id==='trap')||a==='place'?true:'先打出「落穴陷阱」並放好', until:(n,i)=>n==='play'&&i.card.id==='trap'},
-  {text:()=>'陷阱放好了。<br>'+DO('結束回合，搔鳥會往陷阱走過來！'), hl:()=>$('btn-end'),
+  {text:()=>mon().dizzy?'陷阱放好了。搔鳥被你打暈了，這回合不會動。<br>'+DO('結束回合，等牠醒來走進陷阱。'):'陷阱放好了。<br>'+DO('結束回合，搔鳥會往陷阱走過來！'), hl:()=>$('btn-end'),
     enter:()=>{ E.planMonsterIntent(); }, gate:only(['endTurn'],'按「結束回合」'), until:n=>n==='turnStart'&&!B.traps.length},
   {text:()=>'漂亮！牠掉進陷阱了。<br>最後，用你學到的一切把<b>搔鳥打倒</b>吧！<br><span class="text-gray-400">道具還有爆彈桶、閃光彈等，按右上 '+icon('help')+' 可以看說明。</span>', gate:()=>true, done:true},
 ];
@@ -94,6 +94,8 @@ function showStep(){
     ${s.next?`<div class="text-right mt-2"><button data-act="tut-next" class="btn btn-sm btn-primary px-4">下一步${icon('next')}</button></div>`:''}
     ${s.done?`<div class="text-right mt-2"><button data-act="tut-hide" class="btn btn-sm btn-secondary">${icon('hide')}收起提示</button></div>`:''}`;
   box.classList.remove('hidden');
+  clearTimeout(box._auto);
+  if(s.done) box._auto=setTimeout(()=>{ if(STEPS[idx]===s){ box.classList.add('hidden'); $('tut-ring').classList.add('hidden'); } }, 6000);
   place();
 }
 function place(){
@@ -125,10 +127,11 @@ function onEvent(name, info){
   if(s._waiting){ if(s.wait(name,info)){ s._waiting=false; showStep(); } return; }
   if(s.done){ if(['move','play','endTurn','discard'].includes(name)){ $('tut-box').classList.add('hidden'); $('tut-ring').classList.add('hidden'); } return; }
   if(s.until && s.until(name,info)) advance();
-  else if(name==='turnStart'||name==='render') place();
+  else if(name==='turnStart') showStep();
+  else if(name==='render') place();
 }
 function end(){
-  active=false;
+  active=false; document.body.classList.remove('tut-on');
   $('tut-box').classList.add('hidden'); $('tut-ring').classList.add('hidden');
   const ctx=battleCtx(); ctx.highlightCells=null; ctx.afterRender=null;
 }
@@ -141,7 +144,7 @@ on('tut-skip', async () => {
 addEventListener('resize', () => active && place());
 
 export function startTutorial(spec, o){
-  opts=o; idx=0; active=true;
+  opts=o; idx=0; active=true; document.body.classList.add('tut-on');
   STEPS.forEach(s=>{ delete s._entered; delete s._waiting; });
   const script = {
     intent:scriptIntent,

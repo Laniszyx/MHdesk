@@ -79,7 +79,7 @@ function rangeLabel(a){
     case 'target': return a.len>0?'鎖定格＋周圍':'鎖定格';
     case 'random': return `隨機 ${a.n} 格`;
     case 'all': return '全場';
-    default: return a.self?'自身':'—';
+    default: return a.self?'自身':'不攻擊';
   }
 }
 const statusPills = h => Object.keys(h.st).filter(k=>h.st[k]>0).map(k=>`<span class="status-pill ${FX[k].cls}" title="${FX[k].label}">${icon(FX[k].icon)}${h.st[k]}</span>`).join('');

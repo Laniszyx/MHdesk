@@ -156,3 +156,10 @@ body .bg-black\/40,body .bg-black\/30{background:rgba(15,20,12,.55)}
 .card .cdash small{font-size:8px;font-weight:800;color:#b3a48a;margin-top:1px}
 .hand-4 .card .cname{font-size:11px;letter-spacing:0}
 .hand-4 .card .cdash{width:28px;flex-basis:28px;font-size:10px}
+
+/* 教學中：提示訊息改到畫面中段，才不會蓋住上方的教官說明框 */
+body.tut-on #toast{top:46%}
+/* 陷阱／爆彈圖示畫在魔物預定位置（半透明魔物）上面，看得出牠會踩到 */
+.cell-ic{z-index:22}
+/* 結算：成果圖示是魔物圖右下角的角標 */
+.hero-badge{position:absolute;right:-12px;bottom:-12px;width:44px;height:44px;border-radius:12px;background:#fff;border:2px solid #a07a3a;display:flex;align-items:center;justify-content:center;font-size:34px;box-shadow:0 3px 8px rgba(0,0,0,.45)}

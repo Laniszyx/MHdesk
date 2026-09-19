@@ -153,8 +153,8 @@ async function freeResult(r){
   const title=r.win?(r.stats.captured?'捕獲成功！':'狩獵成功！'):'任務失敗';
   const hero=micon(r.win?(r.stats.captured?'net':'laurel'):'skull');
   const sub=r.win?`第 ${r.turns} 回合${r.stats.captured?'捕獲':'討伐'} ${m.name}（此魔物 ${h.wins} 勝${h.bestTurn?'・最快 '+h.bestTurn+' 回':''}）`:`${r.reason}${m.hp>0?`（${m.name} 仍剩 ${m.hp} HP）`:''}`;
-  const v = await modal(`<div class="text-center"><div class="w-28 h-28 mx-auto rounded-2xl bg-white p-2 mb-3 shadow-2xl"><img src="${m.img}" class="w-full h-full object-contain" alt=""></div>
-    <div class="hero-ic mb-2">${hero}</div><h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
+  const v = await modal(`<div class="text-center"><div class="w-28 h-28 mx-auto rounded-2xl bg-white p-2 mb-3 shadow-2xl relative"><img src="${m.img}" class="w-full h-full object-contain" alt=""><span class="hero-badge">${hero}</span></div>
+    <h2 class="text-3xl font-black mb-1 ${r.win?'text-green-400':'text-red-500'}">${title}</h2><p class="text-gray-400 text-sm mb-3">${sub}</p>
     <div class="space-y-1.5">${achHtml(fresh)}</div></div>`,
     [{label:'再打一次',icon:'retry',cls:'btn-primary',value:'again'},{label:'換魔物',icon:'dragon',value:'change'},{label:'紀錄',icon:'trophy',value:'records'},{label:'主選單',icon:'home',value:'menu'}]);
   if(v==='again') startFree();
