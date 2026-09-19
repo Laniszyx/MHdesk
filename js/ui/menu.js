@@ -22,11 +22,13 @@ export function titleScreen(){
   const prog = st ? (()=>{ const ch=[...CHAPTERS].reverse().find(c=>c.id===0||st.cleared['q'+(c.id-1)+'-U']||(c.id===1&&st.tutorialDone)); return `上次進度：${ch?ch.name+' '+ch.sub:'序章'}・HR ${hrOf(st.exp)}・${WEAPONS[st.hunter.weapon].name}`; })() : '';
   $('screen-view').innerHTML = `
   <div data-act="go" data-to="menu" class="flex-1 flex flex-col items-center justify-center px-6 text-center relative overflow-hidden">
+    <div class="title-sun"></div>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none" style="opacity:.13;filter:blur(1px) grayscale(.3)"><img src="${m.f}" class="w-[70vw] max-w-sm rounded-[30%] bg-white" alt=""></div>
     <div class="relative">
       <div class="text-[11px] tracking-[.4em] text-amber-400 font-bold">HUNTING BOARD</div>
       <h1 class="text-4xl font-black mt-2 drop-shadow-lg">狩獵戰棋</h1>
       <div class="text-gray-400 font-bold mt-1">六角格版</div>
+      <div class="title-orn">${icon('dragon')}</div>
       ${prog?`<div class="mt-6 text-[11px] text-amber-200 bg-black/40 rounded-full px-3 py-1 inline-block">${prog}</div>`:''}
       <div class="mt-10 text-sm text-gray-200 animate-pulse">點擊畫面開始</div>
     </div>

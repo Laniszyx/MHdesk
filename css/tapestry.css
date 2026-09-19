@@ -1,0 +1,96 @@
+/* 織錦主題：仿魔物獵人地圖掛毯的視覺 —— 布紋底、金線幾何邊框、民族圖騰裝飾。
+   這個檔案在 style.css 之後載入，只覆蓋顏色、材質與邊框；版面規則仍在 style.css。 */
+:root{
+  --bg:#1a2318; --panel:#273121; --panel2:#33402a; --line:#4f5b3b; --line2:#8a6a34;
+  --amber:#d9a441; --amber2:#b07f22; --red:#b8432f; --blue:#7f8fc9; --purple:#8f7fb8; --green:#9fb84a;
+  --ink:#efe6cf; --tile:#fff; --indigo:#3d3660; --terra:#a13b2c; --moss:#5c7a2f;
+  /* 布紋：細十字紋 + 斜向暗線，像織布 */
+  --weave:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='8' height='8'><path d='M0 4h8M4 0v8' stroke='rgba(240,225,190,.05)' stroke-width='1'/><path d='M0 0l8 8M8 0L0 8' stroke='rgba(0,0,0,.10)' stroke-width='1'/></svg>");
+  --noise:var(--weave);
+  /* 金線圖騰邊框：菱形、圓圈、細線（border-image 用） */
+  --motif:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='36' height='36'><rect width='36' height='36' fill='%233b2a14'/><rect x='1.5' y='1.5' width='33' height='33' fill='none' stroke='%23d9a441' stroke-width='1'/><g fill='none' stroke='%23d9a441' stroke-width='1.2'><circle cx='6' cy='6' r='3'/><circle cx='30' cy='6' r='3'/><circle cx='6' cy='30' r='3'/><circle cx='30' cy='30' r='3'/></g><g fill='%23e8dcc0'><circle cx='6' cy='6' r='.9'/><circle cx='30' cy='6' r='.9'/><circle cx='6' cy='30' r='.9'/><circle cx='30' cy='30' r='.9'/></g><g fill='%23d9a441'><path d='M18 2l4 4-4 4-4-4z'/><path d='M18 26l4 4-4 4-4-4z'/><path d='M2 18l4-4 4 4-4 4z'/><path d='M26 18l4-4 4 4-4 4z'/></g><g fill='%23e8dcc0'><circle cx='18' cy='6' r='1'/><circle cx='18' cy='30' r='1'/><circle cx='6' cy='18' r='1'/><circle cx='30' cy='18' r='1'/></g></svg>");
+  /* 鋸齒分隔線 */
+  --zig:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='6'><path d='M0 5l3-4 3 4 3-4 3 4' fill='none' stroke='%23d9a441' stroke-width='1' opacity='.55'/></svg>");
+  /* 三角織帶（頁面上下緣） */
+  --band:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><rect width='16' height='8' fill='%233b2a14'/><path d='M0 8l4-6 4 6z' fill='%23d9a441'/><path d='M8 8l4-6 4 6z' fill='%239fb84a'/><path d='M0 .8h16' stroke='%23e8dcc0' stroke-width='.8'/></svg>");
+}
+body{background:var(--bg);background-image:var(--weave),radial-gradient(ellipse at 50% -10%,#3a4a24 0%,transparent 55%);}
+/* 全畫面織錦框 */
+#frame{position:fixed;inset:0;pointer-events:none;z-index:300;border:9px solid transparent;border-image:var(--motif) 12 round;box-shadow:inset 0 0 0 1px rgba(217,164,65,.35)}
+.screen{padding:calc(env(safe-area-inset-top) + 9px) 9px calc(env(safe-area-inset-bottom) + 9px)}
+
+/* 面板：布紋底、雙線縫邊 */
+.panel,.menu-btn,.quest-card,.hunter-card,.drawer,.dock{background-color:var(--panel);background-image:var(--weave)}
+.panel{border:1px solid var(--line2);box-shadow:inset 0 0 0 3px var(--panel),inset 0 0 0 4px rgba(217,164,65,.28)}
+.menu-btn{border:1px solid var(--line2);box-shadow:inset 0 0 0 3px var(--panel),inset 0 0 0 4px rgba(217,164,65,.22)}
+.menu-btn.main{background-color:#3d3111;border-color:#c99a3a;box-shadow:inset 0 0 0 3px #3d3111,inset 0 0 0 4px rgba(217,164,65,.55)}
+.quest-card{border:1px solid var(--line2);box-shadow:inset 0 0 0 3px var(--panel),inset 0 0 0 4px rgba(217,164,65,.22)}
+.quest-card.urgent{background-color:#3a1a16;border-color:#c25a45;box-shadow:inset 0 0 0 3px #3a1a16,inset 0 0 0 4px rgba(194,90,69,.5)}
+.hunter-card{background-color:var(--panel2)}
+/* 重點面板：金線圖騰框 */
+.modal>.panel,.quest-scroll,#tut-box{border:10px solid transparent;border-image:var(--motif) 12 round;box-shadow:0 20px 50px rgba(0,0,0,.6);border-radius:0}
+.quest-scroll{background:#2a2412 var(--weave);color:#efe6cf}
+#tut-box{background:#1f2916 var(--weave)}
+.modal>.panel{background:#273121 var(--weave)}
+/* 小標題後面接一條鋸齒金線 */
+.sec::after{content:"";flex:1;height:6px;margin-left:8px;background:var(--zig) repeat-x left center}
+.sec{color:#c9b98f}
+/* 抽屜與底部操作區：上緣織帶 */
+.dock{border-top:0;background-color:#1f2818;padding-top:14px;position:relative}
+.dock::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--band) repeat-x}
+.drawer{border-top:0;padding-top:16px}
+.drawer::before{content:"";position:absolute;left:0;right:0;top:0;height:8px;background:var(--band) repeat-x;border-radius:18px 18px 0 0}
+/* 頁首 */
+header h1{letter-spacing:.04em}
+/* 按鈕：繡線內框 */
+.btn-primary{background:linear-gradient(180deg,#eab84e,#c48a22);border-color:#f3d27a;outline:1px dashed rgba(60,35,0,.45);outline-offset:-4px}
+.btn-secondary,.btn-ghost{background:linear-gradient(180deg,#3d4a30,#2c3722);border-color:#8a6a34;color:#efe6cf;outline:1px dashed rgba(217,164,65,.35);outline-offset:-4px}
+.btn-danger{background:linear-gradient(180deg,#c9533e,#9a2f22);border-color:#e79a8a;outline:1px dashed rgba(255,220,200,.35);outline-offset:-4px}
+.btn-danger-soft{background:#3a1f18;border-color:#8a4a38;color:#f0c5b8}
+.btn-icon{color:#c9b98f}
+.seg{background:#141a11;border-color:var(--line2)}
+.tabs button{background:var(--panel2);border-color:var(--line2);color:#e3d7c2}
+.pill{background:rgba(20,26,17,.8);border-color:var(--line2)}
+/* 標籤色調 */
+body .text-gray-400{color:#b1a684}body .text-gray-500{color:#867c62}body .text-gray-300{color:#d5c9ab}
+body .bg-black\/40,body .bg-black\/30{background:rgba(15,20,12,.55)}
+/* 棋盤：織布與皮革格 */
+#grid-container{background:#141a11 var(--weave);border:1px solid var(--line2);box-shadow:inset 0 0 0 3px #141a11,inset 0 0 0 4px rgba(217,164,65,.3),inset 0 0 40px rgba(0,0,0,.6)}
+.hex{background:linear-gradient(160deg,#3c4630,#262e1e)}
+.hex.reach{background:linear-gradient(160deg,#5c7a2f,#3a5020);box-shadow:inset 0 0 0 2px rgba(224,192,96,.5)}
+.hex.reach::after{background:rgba(233,205,110,.7)}
+.hex.danger{background:repeating-linear-gradient(45deg,#8a3324 0 6px,#5e2016 6px 12px)}
+.hex.phantom{background:linear-gradient(160deg,#4a4272,#2e2a48)}
+.hex.item{box-shadow:inset 0 0 0 2px rgba(217,164,65,.6)}
+/* 戰鬥 HUD */
+.intent{background:linear-gradient(90deg,rgba(161,59,44,.45),rgba(50,26,20,.7));border-color:#8a4a38}
+.intent.calm{background:rgba(20,26,17,.6);border-color:var(--line2)}
+.intent.good{background:rgba(92,122,47,.35);border-color:#7a9a45}
+#mini-log{background:rgba(20,26,17,.6);border-color:var(--line)}
+/* 手牌 */
+.card{background-blend-mode:normal;box-shadow:0 6px 14px rgba(0,0,0,.4),inset 0 0 0 1px rgba(0,0,0,.3)}
+.card::after{content:"";position:absolute;inset:3px;border:1px dashed rgba(240,225,190,.25);border-radius:9px;pointer-events:none}
+.card.attack{background:var(--weave),linear-gradient(160deg,#7f2e24,#3d1611)}
+.card.skill{background:var(--weave),linear-gradient(160deg,#7d5520,#3d2810)}
+.card.defend{background:var(--weave),linear-gradient(160deg,#3d3a66,#1f1c34)}
+.card.item{background:var(--weave),linear-gradient(160deg,#4a5a28,#232d12)}
+/* 血條 */
+.bar{background:#0f130c;border-color:#5a4a2c}
+.bar-red>div{background:linear-gradient(90deg,#e0644f,#a13b2c)}
+.bar-green>div{background:linear-gradient(90deg,#c5d96a,#6f9a3a)}
+/* 標題畫面：陽光放射紋 */
+.title-sun{position:absolute;inset:0;pointer-events:none;background:repeating-conic-gradient(from 0deg at 50% -8%,rgba(224,192,96,.13) 0 4deg,transparent 4deg 10deg);mask-image:linear-gradient(180deg,#000 0%,transparent 70%);-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 70%)}
+.title-orn{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;color:var(--amber)}
+.title-orn::before,.title-orn::after{content:"";width:64px;height:6px;background:var(--zig) repeat-x center}
+.title-orn .ic{font-size:16px}
+/* 圖示方塊金框 */
+.tile,.card-ic,.mat-ico,.mon-tile,.av-btn,.av-pick,.mon-pick,.quest-card .qimg{border-color:#a07a3a}
+/* 開關 */
+.switch{background:#4a4a35}.switch.on{background:#7a9a3a}
+/* toast / 公告 */
+#toast,#announce{background:#1f2916 var(--weave);border-color:var(--amber)}
+/* 四張手牌時：名稱單行、圖示縮小 */
+.hand-4 .card .chead{gap:3px}
+.hand-4 .card .cic{width:20px;height:20px;font-size:16px}
+.hand-4 .card .cname{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hc-hp{font-size:10px}

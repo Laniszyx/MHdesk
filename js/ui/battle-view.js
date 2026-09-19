@@ -113,7 +113,7 @@ export function render(){
     return `<div data-act="hunter-select" data-i="${h.id}" class="hunter-card ${on&&!solo?'on':''} ${dead?'dead':''}">
       <span class="tile sm" style="border-color:${h.color==='red'?'#8a2e24':'#3f5f96'}">${avatar(h.icon)}</span>
       <div class="flex-1 min-w-0">
-        <div class="hc-name"><span class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</span><span class="hc-hp">${Math.max(0,h.hp)} / ${h.maxHp}</span></div>
+        <div class="hc-name"><span class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</span><span class="hc-hp">${Math.max(0,h.hp)}/${h.maxHp}</span></div>
         <div class="bar bar-green mt-1" style="height:6px"><div style="width:${Math.max(0,h.hp/h.maxHp*100)}%"></div></div>
         <div class="hc-meta"><span class="hc-move ${h.move?'':'zero'}">步數 <b>${h.move}</b>/${h.maxMove}</span><span class="hc-wpn">${icon(h.weapon.icon)}${solo?h.weapon.name+' Lv'+h.wlv:h.weapon.name}</span>${statusPills(h)}${extra}</div>
       </div></div>`;

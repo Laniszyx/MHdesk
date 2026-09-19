@@ -31,6 +31,7 @@ python -m http.server 8765
 ## 介面規範
 
 - 不用 emoji，一律用 `icon()`／`micon()`。
+- 視覺主題在 `css/tapestry.css`（織錦：布紋底、金線圖騰框、鋸齒分隔線），只覆蓋顏色與材質；版面規則在 `style.css`。改主題色請改 `tapestry.css` 的 `:root`。
 - 色調：暗色皮革底（`--bg`、`--panel`）配青銅框（`--line2`）與金色強調（`--amber`），文字米白；Tailwind 的灰階與強調色都在 `style.css` 末段改成暖色，新加的顏色也請走同一套。
 - 按鈕：`btn` 加上 `btn-primary`（主要）、`btn-secondary`（次要）、`btn-danger`（危險）、`btn-danger-soft`（次要危險）、`btn-link`（文字連結）；尺寸 `btn-lg`（頁面底部）、`btn-sm`（清單內）、`btn-icon`（標題列圖示鈕）、`btn-sq`（加減鈕）。
 - 頁面標題用 `page({title, icon})`，頁內小標用 `<div class="sec">`，選單項目用 `menuBtn()`。
