@@ -42,6 +42,30 @@ export function cardDesc(card, h){
   return '';
 }
 
+/* 手牌上顯示的一行簡述（完整說明用 cardDesc，點卡片圖示可看） */
+export function cardBrief(card, h){
+  const atk = h ? h.atk : null, w = h ? h.weapon : null, id = w && w.id;
+  switch(card.id){
+    case 'basic': return atk!=null?`相鄰：${atk} 傷`:'相鄰：武器攻擊';
+    case 'heavy': return atk!=null?`相鄰：${atk+1} 傷`:'相鄰：武器攻擊 +1';
+    case 'skill': return w ? w.skill.brief.replace('{dmg}', h.skillDmg) : '依武器而定';
+    case 'dodge': return '被動：受傷時完全閃躲';
+    case 'shield': return `被動：受傷減 ${id==='gs'?3:2}${id==='lance'?'，相鄰反擊 1':''}`;
+    case 'knife': return '距離 2 內 1 傷，不耗步';
+    case 'potion': return `回復 ${id==='sns'?4:3} HP`;
+    case 'meat': return `本回合 +${id==='sns'?3:2} 步`;
+    case 'flash': return '取消魔物本回合攻擊';
+    case 'trap': return '踩中 -2 且中斷；虛弱可捕獲';
+    case 'shock': return '踩中暈眩一回合；虛弱可捕獲';
+    case 'bomb': return '引爆時周圍一圈 4 傷';
+    case 'dash': return '本回合與下回合各 +1 步';
+    case 'cure': return '解除異常，回 1 HP';
+    case 'cannon': return '距離 3 內 4 傷';
+  }
+  return '';
+}
+export const CARD_TYPE_LABEL = {attack:'攻擊牌', skill:'技能牌', defend:'防禦牌（被動）', item:'道具・打出後本場移除'};
+
 export const DECK_RULES = {free:{min:30,max:30,items:10}, story:{min:20,max:30,items:10}};
 export const DECK_PRESETS = {
   balanced:{name:'平衡',desc:'攻守道具均衡，適合新手',counts:{basic:5,heavy:4,skill:3,dodge:4,shield:4,potion:3,meat:2,flash:1,trap:2,bomb:2}},

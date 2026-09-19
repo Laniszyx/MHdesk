@@ -3,7 +3,7 @@ import * as E from '../engine/battle.js';
 import { B } from '../engine/battle.js';
 import { GRID_SIZE, getNeighbors } from '../engine/hex.js';
 import { FX, TIER } from '../data/monsters.js';
-import { cardDesc } from '../data/cards.js';
+import { cardDesc, cardBrief, CARD_TYPE_LABEL } from '../data/cards.js';
 import { WEAPONS } from '../data/weapons.js';
 import { settings, saveSettings } from '../save.js';
 import { play as sfx } from '../audio.js';
@@ -32,8 +32,7 @@ function logMsg(msg, alert=false){
   const b=$('battle-log'), e=document.createElement('div');
   e.innerHTML=msg; if(alert) e.className='text-amber-300 font-bold';
   b.appendChild(e); b.scrollTop=b.scrollHeight;
-  const rows=[...b.children].slice(-2);
-  $('mini-log').innerHTML=rows.map(r=>`<div class="truncate ${r.className}">${r.innerHTML}</div>`).join('');
+  $('mini-log').innerHTML=`<span class="${alert?'alert':''}">${msg}</span>`;
 }
 function shake(){ const g=$('grid-wrap'); g.classList.remove('shake'); void g.offsetWidth; g.classList.add('shake'); }
 function spawnFx(x,y,html){
@@ -74,34 +73,49 @@ const fxTag = (k, text) => `<span class="${FX[k].cls}">${icon(FX[k].icon)}${text
 
 export function render(){
   if(!B.active) return;
-  const m=B.mon, alive=E.monAlive(), ap=E.curHunter();
-  /* 魔物資訊 */
-  $('hud-mon-img').src=m.img; $('hud-mon-name').innerHTML=`${m.name} <span class="text-[9px] text-gray-400">${TIER[m.tier].label}</span>${E.capturable()?' <span class="chip bg-emerald-700 text-white">可捕獲</span>':''}`;
+  const m=B.mon, alive=E.monAlive(), ap=E.curHunter(), c=B.cfg;
+  /* 魔物：名稱、狀態、血量、目標 */
+  $('hud-mon-img').src=m.img;
+  $('hud-mon-name').innerHTML=`${m.name}<span class="stars">${TIER[m.tier].label}</span>`;
+  const tags=[m.fly>0?fxTag('fly',''):'', m.armor>0?fxTag('armor',''):'', m.enraged?fxTag('enrage',''):'', m.dizzy?fxTag('dizzy',''):''].filter(Boolean).join('');
+  $('hud-mon-tags').innerHTML=tags?`<span class="tags">${tags}</span>`:'';
   $('monster-hp-bar').style.width=`${Math.max(0,m.hp/m.maxHp*100)}%`;
-  $('monster-hp-text').innerText=`${Math.max(0,m.hp)}/${m.maxHp}`;
-  $('cap-mark').classList.toggle('hidden', !(m.tier<3 && (B.cfg.objective==='capture' || B.cfg.mode!=='tutorial')));
-  const mst=[m.fly>0?fxTag('fly','飛行'):'', m.armor>0?fxTag('armor','硬化'):'', m.enraged?fxTag('enrage','狂暴'):'', m.dizzyImmune>0&&!m.dizzy?'<span class="text-gray-400">暈眩抗性</span>':''].filter(Boolean).join(' ');
-  let iname, idesc;
-  if(!alive){ iname = m.captured?`<span class="text-emerald-300">${icon('net')} 已捕獲</span>`:`<span class="text-gray-300">${icon('laurel')} 已討伐</span>`; idesc = B.cfg.objective==='gather'?'魔物已倒下，安心採集吧':'—'; }
-  else if(m.dizzy){ iname=`${mst} ${fxTag('dizzy','暈眩中')}`; idesc='本回合魔物不會移動，也不會攻擊'; }
-  else if(m.blinded){ iname=`${mst} <span class="text-yellow-200">${icon('flash')} 攻擊被取消</span>`; idesc='本回合魔物仍會移動，但不會攻擊'; }
-  else if(m.intent){ iname=`${mst} ${icon('claw')} ${m.intent.name}${m.intent.dmg>0?` (${m.intent.dmg}傷)`:''}`; idesc=`${m.intent.desc}${m.intent.fx?'　'+m.intent.fx:''}`; }
-  else { iname=mst||'…'; idesc=''; }
-  $('monster-intent-name').innerHTML=iname; $('monster-intent-desc').innerHTML=idesc;
-  $('turn-display').innerText=`第 ${B.turn} 回合`;
-  renderObjective();
+  $('monster-hp-text').innerText=`${Math.max(0,m.hp)} / ${m.maxHp}`;
+  $('cap-mark').classList.toggle('hidden', !(m.tier<3 && (c.objective==='capture' || c.mode!=='tutorial')));
+  const total=c.mons.length, idx=B.killed.length+(alive?1:0);
+  let obj='';
+  if(!alive) obj='';
+  else if(E.capturable()) obj=`${icon('net')}可捕獲`;
+  else if(c.objective==='capture') obj=`${icon('net')}捕獲：HP 30% 以下踩陷阱`;
+  else if(total>1) obj=`${icon('target')}討伐 ${Math.min(idx,total)} / ${total}`;
+  $('hud-objective').innerHTML=obj;
+  /* 下一招 */
+  const it=$('monster-intent-desc'); let cls='intent', html;
+  if(!alive){ cls+=' good'; html=m.captured?`${icon('net')}<b>已捕獲</b>`:`${icon('laurel')}<b>已討伐</b>`; }
+  else if(m.dizzy){ cls+=' calm'; html=`${icon('dizzy')}<b>暈眩中</b><span class="desc">這回合不移動、不攻擊</span>`; }
+  else if(m.blinded){ cls+=' calm'; html=`${icon('flash')}<b>攻擊取消</b><span class="desc">被閃光致盲，仍會移動</span>`; }
+  else if(m.intent){ html=`<span class="lbl">下一招</span><b>${m.intent.name}</b>${m.intent.dmg>0?`<span class="dmg">${m.intent.dmg} 傷</span>`:''}<span class="desc">${m.intent.desc}${m.intent.fx?'　'+m.intent.fx:''}</span>`; }
+  else { cls+=' calm'; html=`<span class="desc">觀察中…</span>`; }
+  if(it.className!==cls) it.className=cls;
+  if(it._html!==html){ it.innerHTML=html; it._html=html; }
+  $('monster-intent-name').innerText=m.intent?m.intent.name:'';
+  /* 回合與貓車 */
+  const tl=E.turnsLeft(), td=$('turn-display');
+  if(tl!==null){ td.innerHTML=`${icon('hourglass')}${B.turn} / ${c.turnLimit} 回合`; td.classList.toggle('warn', tl<=3); }
+  else { td.innerText=`第 ${B.turn} 回合`; td.classList.remove('warn'); }
+  const cd=$('cart-display');
+  if(c.carts!=null){ cd.innerHTML=`${icon('cat')}${B.cartsUsed} / ${c.carts}`; cd.classList.toggle('warn', B.cartsUsed>=c.carts-1); cd.classList.remove('hidden'); } else cd.classList.add('hidden');
   /* 獵人卡 */
   const solo=B.hunters.length===1;
   $('hunter-cards').innerHTML=B.hunters.map(h=>{
     const on=B.cur===h.id, dead=!E.alive(h);
-    const extra=[h.weapon.id==='ls'?`<span class="text-sky-300">練氣 ${'●'.repeat(h.spirit)}${'○'.repeat(3-h.spirit)}</span>`:'', h.dashBuff?`<span class="text-lime-300" title="強走藥">${icon('flask')}</span>`:''].filter(Boolean).join(' ');
-    return `<div data-act="hunter-select" data-i="${h.id}" class="tap hunter-card panel px-2 py-1.5 flex items-center gap-2 border-2" style="border-color:${on&&!solo?'var(--amber)':'transparent'};opacity:${dead?.4:1}">
+    const extra=[h.weapon.id==='ls'?`<span class="text-sky-300">練氣 ${'●'.repeat(h.spirit)}${'○'.repeat(3-h.spirit)}</span>`:'', h.dashBuff?`<span class="text-lime-300" title="強走藥">${icon('flask')}</span>`:''].filter(Boolean).join('');
+    return `<div data-act="hunter-select" data-i="${h.id}" class="hunter-card ${on&&!solo?'on':''} ${dead?'dead':''}">
       <span class="tile sm" style="border-color:${h.color==='red'?'#8a2e24':'#3f5f96'}">${avatar(h.icon)}</span>
       <div class="flex-1 min-w-0">
-        <div class="flex justify-between text-[11px] gap-1"><b class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</b><span class="text-gray-300 shrink-0">${Math.max(0,h.hp)}/${h.maxHp}</span></div>
-        <div class="bar bar-green mt-0.5" style="height:6px"><div style="width:${Math.max(0,h.hp/h.maxHp*100)}%"></div></div>
-        <div class="text-[10px] text-gray-400 mt-0.5 flex items-center gap-1 flex-wrap">步數 <span class="text-white font-black">${h.move}</span><span class="text-gray-600">/${h.maxMove}</span>
-          <span class="text-gray-500 inline-flex items-center gap-0.5">${icon(h.weapon.icon)}${solo?h.weapon.name+' Lv'+h.wlv:''}</span>${statusPills(h)} ${extra}</div>
+        <div class="hc-name"><span class="${h.color==='red'?'text-red-300':'text-blue-300'} truncate">${h.name}</span><span class="hc-hp">${Math.max(0,h.hp)} / ${h.maxHp}</span></div>
+        <div class="bar bar-green mt-1" style="height:6px"><div style="width:${Math.max(0,h.hp/h.maxHp*100)}%"></div></div>
+        <div class="hc-meta"><span class="hc-move ${h.move?'':'zero'}">步數 <b>${h.move}</b>/${h.maxMove}</span><span class="hc-wpn">${icon(h.weapon.icon)}${solo?h.weapon.name+' Lv'+h.wlv:h.weapon.name}</span>${statusPills(h)}${extra}</div>
       </div></div>`;
   }).join('');
   /* 棋盤 */
@@ -134,39 +148,30 @@ export function render(){
   $('btn-end').disabled = B.processing || B.over;
   if(ctx.afterRender) ctx.afterRender();
 }
-function renderObjective(){
-  const bar=$('objective-bar'), c=B.cfg;
-  if(c.mode==='free' && !c.turnLimit && c.carts==null){ bar.classList.add('hidden'); return; }
-  let goal='';
-  const total=c.mons.length, idx=B.killed.length+(E.monAlive()?1:0);
-  if(c.objective==='gather') goal=`${icon('herb')} 採集 <b>${B.gathered}/${c.gather.need}</b>`;
-  else if(c.objective==='capture') goal=`${icon('net')} 捕獲 ${B.mon.name}（HP 30% 以下踩陷阱）`;
-  else if(c.mode==='tutorial') goal=`${icon('cap')} 新手訓練`;
-  else goal=`${icon('target')} 討伐 ${B.mon.name}${total>1?`（${Math.min(idx,total)}/${total}）`:''}`;
-  const right=[];
-  const tl=E.turnsLeft(); if(tl!==null) right.push(`<span class="${tl<=3?'text-red-300 font-black':''}">${icon('hourglass')} 剩 ${Math.max(0,tl)} 回合</span>`);
-  if(c.carts!=null) right.push(`<span title="貓車">${icon('cat')} ${B.cartsUsed}/${c.carts}</span>`);
-  bar.innerHTML=`<span class="truncate">${goal}</span><span class="shrink-0 flex gap-2">${right.join('')}</span>`;
-  bar.classList.remove('hidden');
-}
 function renderHand(){
   const c=$('hand-container'), h=E.curHunter();
   c.classList.toggle('hand-4', B.hand.length>=4);
   c.innerHTML=B.hand.map((card,i)=>{
     const {ok,hint}=E.canPlay(card,h);
     const placing=B.placement&&B.placement.idx===i;
+    const name=card.id==='skill'?h.weapon.skill.name:card.name;
     return `<div class="card ${card.type}" ${placing?'style="outline:2px solid #fde68a"':''}>
-      <div class="flex items-center gap-1"><span class="cic">${micon(card.glyph)}</span><b class="text-[11px] truncate">${card.id==='skill'?h.weapon.skill.name:card.name}</b></div>
-      <div class="text-[9px] text-gray-300 leading-tight flex-1 clamp3">${cardDesc(card,h)}</div>
-      <div class="flex flex-col gap-1 mt-1">
-        <button class="cbtn play" data-act="card-play" data-i="${i}" ${ok&&!B.over?'':'disabled'}>${ok?'打出':hint}</button>
-        <button class="cbtn dash" data-act="card-dash" data-i="${i}" ${B.over?'disabled':''}>棄牌 +1步</button></div></div>`;
+      <button class="chead" data-act="card-info" data-i="${i}" aria-label="${name} 說明"><span class="cic">${micon(card.glyph)}</span><span class="cname">${name}</span></button>
+      <div class="brief">${cardBrief(card,h)}</div>
+      <button class="cbtn play" data-act="card-play" data-i="${i}" ${ok&&!B.over?'':'disabled'}>${ok?'打出':hint}</button>
+      <button class="cbtn dash" data-act="card-dash" data-i="${i}" ${B.over?'disabled':''}>棄牌 +1步</button></div>`;
   }).join('');
 }
 
 /* ---------- 操作 ---------- */
 on('card-play', d => E.playCard(+d.i));
 on('card-dash', d => E.discardForMove(+d.i));
+on('card-info', d => {
+  const h=E.curHunter(), card=B.hand[+d.i]; if(!card) return; sfx('tap');
+  const name=card.id==='skill'?h.weapon.skill.name:card.name;
+  modal(`<div class="flex items-center gap-3 mb-3"><span class="card-ic ${card.type}" style="width:44px;height:44px;flex-basis:44px;font-size:34px">${micon(card.glyph)}</span><div><div class="text-lg font-black">${name}</div><div class="text-[11px] text-gray-400">${CARD_TYPE_LABEL[card.type]}</div></div></div>
+    <p class="text-sm text-gray-200 leading-relaxed">${cardDesc(card,h)}</p>`,[{label:'關閉',value:1}],{dismiss:1});
+});
 on('hunter-select', d => E.selectHunter(+d.i));
 on('undo', () => E.undoMove());
 on('gather', () => E.gatherHere());
@@ -215,15 +220,15 @@ function renderHelp(){
         <li>走到魔物<b>相鄰格</b>後打出攻擊牌。打不出去時按鈕會直接寫原因。</li>
         <li>動完按紅色「結束回合」，魔物才會行動。</li>
       </ol></div>
-    <div class="panel p-3"><b class="text-amber-300">手牌上的兩顆按鈕</b>
+    <div class="panel p-3"><b class="text-amber-300">手牌</b>
+      <div class="mt-1">點卡片<b>名稱</b>可看完整說明。</div>
       <div class="mt-1"><b class="text-yellow-300">打出</b>：使用這張牌的效果。</div>
       <div class="mt-1"><b class="text-gray-100">棄牌 +1步</b>：<u>不使用效果</u>，把牌丟進棄牌堆，換目前獵人 +1 步。棄掉的牌之後會洗回牌庫。</div>
       <div class="mt-1"><b class="text-blue-300">被動</b>：翻滾／舉盾只會在你要受傷時自動跳出視窗問你要不要用。</div></div>
     <div class="panel p-3"><b class="text-amber-300">看懂地圖</b>
       <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#6b3a8a"></span> 半透明魔物 = 牠這回合會走到的位置。</div>
       <div class="mt-1"><span class="inline-block w-3 h-3 rounded-sm align-middle" style="background:#7a1f24"></span> 紅色斜紋 = 牠這次攻擊會打到的格子。</div>
-      <div class="mt-1">魔物撞到站在牠目的格的獵人會把人推退 1 格，撞到邊緣受 3 傷。</div>
-      <div class="mt-1"><span class="text-lime-300">${icon('herb')}</span> 採集點：站上去按「採集」（耗 1 步）。</div></div>
+      <div class="mt-1">魔物撞到站在牠目的格的獵人會把人推退 1 格，撞到邊緣受 3 傷。</div></div>
     <div class="panel p-3"><b class="text-amber-300">武器</b>${w}</div>
     <div class="panel p-3"><b class="text-amber-300">魔物招式與狀態</b>
       <div class="mt-1">${fxTag('slow','減速')}：下回合 -1 步　${fxTag('stun','麻痺')}：下回合不能移動</div>

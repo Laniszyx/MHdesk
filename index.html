@@ -17,48 +17,47 @@
 
 <!-- ================= 戰鬥 ================= -->
 <div id="screen-game" class="screen hidden">
-  <header class="shrink-0 px-2 pt-2 pb-1.5 flex items-center gap-1.5">
-    <button data-act="pause" class="btn btn-icon" aria-label="暫停"><svg class="ic"><use href="#i-pause"/></svg></button>
-    <div class="w-11 h-11 rounded-xl bg-white p-0.5 shrink-0 shadow-lg border border-[#6b5334]"><img id="hud-mon-img" class="w-full h-full object-contain" alt=""></div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center justify-between gap-1">
-        <span id="hud-mon-name" class="font-black text-red-300 text-sm truncate">魔物</span>
-        <span id="turn-display" class="shrink-0 text-[10px] font-bold text-gray-400 bg-black/40 px-2 py-0.5 rounded-full">第 1 回合</span>
-      </div>
-      <div class="bar bar-red mt-1 relative overflow-visible"><div id="monster-hp-bar" style="width:100%"></div><span id="cap-mark" class="cap-mark hidden"></span></div>
-      <div class="flex justify-between text-[10px] mt-0.5 gap-1">
-        <span id="monster-hp-text" class="text-gray-300 font-bold shrink-0">40/40</span>
-        <span id="monster-intent-name" class="text-amber-400 font-bold truncate">正在鎖定...</span>
+  <div class="hud">
+    <div class="hud-bar">
+      <button data-act="pause" class="btn btn-icon" aria-label="暫停"><svg class="ic"><use href="#i-pause"/></svg></button>
+      <div class="hud-meta"><span id="turn-display" class="pill">第 1 回合</span><span id="cart-display" class="pill hidden"></span></div>
+      <button data-act="drawer" data-name="help" class="btn btn-icon" aria-label="說明"><svg class="ic"><use href="#i-help"/></svg></button>
+      <button data-act="drawer" data-name="log" class="btn btn-icon" aria-label="日誌"><svg class="ic"><use href="#i-log"/></svg></button>
+    </div>
+    <div class="hud-mon">
+      <div class="tile mon-tile"><img id="hud-mon-img" alt=""></div>
+      <div class="flex-1 min-w-0">
+        <div class="hud-name"><span id="hud-mon-name">魔物</span><span id="hud-mon-tags"></span></div>
+        <div class="bar bar-red hud-hp"><div id="monster-hp-bar" style="width:100%"></div><span id="cap-mark" class="cap-mark hidden"></span></div>
+        <div class="hud-hpline"><span id="monster-hp-text">40 / 40</span><span id="hud-objective" class="obj"></span></div>
       </div>
     </div>
-    <button data-act="drawer" data-name="help" class="btn btn-icon" aria-label="說明"><svg class="ic"><use href="#i-help"/></svg></button>
-    <button data-act="drawer" data-name="log" class="btn btn-icon" aria-label="日誌"><svg class="ic"><use href="#i-log"/></svg></button>
-  </header>
-  <div id="monster-intent-desc" class="shrink-0 mx-2 mb-1 px-3 py-1 rounded-lg bg-[#3a1a16] border border-[#7a3a2c] text-[11px] text-red-100 truncate"></div>
-  <div id="objective-bar" class="hidden shrink-0 mx-2 mb-1 px-3 py-1 rounded-lg bg-[#3a2c14] border border-[#8a6a2a] text-[11px] text-amber-100 flex items-center justify-between gap-2"></div>
+    <div id="monster-intent-desc" class="intent"></div>
+    <span id="monster-intent-name" class="hidden"></span>
+  </div>
 
-  <main class="flex-1 min-h-0 flex items-center justify-center px-1.5 relative">
+  <main class="flex-1 min-h-0 flex items-center justify-center px-2 relative">
     <div id="grid-wrap" class="relative" style="aspect-ratio:1.18;width:100%;max-width:560px;max-height:100%;">
       <div id="grid-container" class="absolute inset-0 rounded-2xl border border-gray-800 bg-[#14100d] shadow-[inset_0_0_40px_rgba(0,0,0,.6)]"></div>
     </div>
   </main>
 
   <div id="placement-hint" class="hidden shrink-0 mx-2 mb-1 flex items-center justify-center gap-1.5 text-[11px] font-bold text-amber-300"><svg class="ic animate-pulse"><use href="#i-pin"/></svg>點擊相鄰的發亮空格放置道具 <button data-act="cancel-place" class="btn btn-link">取消</button></div>
-  <div id="mini-log" data-act="drawer" data-name="log" class="shrink-0 mx-2 mb-1 px-3 py-1.5 rounded-lg bg-black/30 border border-gray-800 text-[11px] text-gray-400 leading-snug"></div>
+  <div id="mini-log" data-act="drawer" data-name="log"></div>
 
-  <footer class="shrink-0 bg-[#1a1410] border-t border-gray-800 px-2 pt-2 pb-2 space-y-1.5 shadow-[0_-10px_24px_rgba(0,0,0,.45)]">
-    <div class="flex gap-2 items-stretch">
+  <footer class="dock">
+    <div class="dock-row">
       <div id="hunter-cards" class="flex-1 min-w-0 flex gap-2"></div>
-      <button data-act="end-turn" id="btn-end" class="btn btn-danger px-3 text-xs leading-tight shrink-0 flex-col !gap-0.5"><svg class="ic"><use href="#i-hourglass"/></svg>結束回合</button>
+      <button data-act="end-turn" id="btn-end" class="btn btn-danger btn-end"><svg class="ic"><use href="#i-hourglass"/></svg>結束回合</button>
     </div>
-    <div class="flex items-center justify-between px-1 gap-2">
-      <span class="text-[10px] text-gray-500 truncate">手牌 <span id="hand-count">0</span>/<span id="hand-max">3</span> ・ 牌庫 <span id="deck-count">0</span> ・ 棄牌 <span id="discard-count">0</span> ・ 消耗 <span id="removed-count">0</span></span>
+    <div class="dock-meta">
+      <span class="counts">牌庫 <b id="deck-count">0</b><span class="dot">·</span>棄牌 <b id="discard-count">0</b><span class="hidden">手牌 <span id="hand-count">0</span>/<span id="hand-max">3</span> 消耗 <span id="removed-count">0</span></span></span>
       <div class="flex gap-1.5 shrink-0">
         <button data-act="gather" id="btn-gather" class="hidden btn btn-sm btn-secondary text-lime-200"><svg class="ic"><use href="#i-herb"/></svg>採集</button>
-        <button data-act="undo" id="btn-undo" class="hidden btn btn-sm btn-secondary"><svg class="ic"><use href="#i-undo"/></svg>撤回</button>
+        <button data-act="undo" id="btn-undo" class="hidden btn btn-sm btn-secondary"><svg class="ic"><use href="#i-undo"/></svg>撤回移動</button>
       </div>
     </div>
-    <div id="hand-container" class="flex gap-2 justify-center pb-1" style="min-height:118px"></div>
+    <div id="hand-container" class="hand"></div>
   </footer>
 </div>
 

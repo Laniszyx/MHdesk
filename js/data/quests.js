@@ -1,5 +1,5 @@
 /* 劇情模式：章節與任務
-   type: tutorial / hunt（討伐）/ capture（捕獲）/ gather（採集）/ timed（限時討伐）/ seq（連續狩獵）
+   type: tutorial / hunt（討伐）/ capture（捕獲）/ timed（限時討伐）/ seq（連續狩獵）
    mons: 出場魔物（連續狩獵依序登場），turns: 回合上限，reward: 固定報酬，exp: HR 經驗
    urgent: 緊急任務（清關後解鎖下一章），req: 本章需先完成幾個其他任務 */
 export const CHAPTERS = [
@@ -15,7 +15,6 @@ export const QUEST_TYPES = {
   tutorial:{label:'訓練',cls:'bg-sky-700 text-white'},
   hunt:{label:'討伐',cls:'bg-red-700 text-white'},
   capture:{label:'捕獲',cls:'bg-emerald-700 text-white'},
-  gather:{label:'採集',cls:'bg-lime-700 text-white'},
   timed:{label:'限時',cls:'bg-orange-600 text-white'},
   seq:{label:'連續狩獵',cls:'bg-fuchsia-700 text-white'},
 };
@@ -29,9 +28,6 @@ export const QUESTS = [
   {id:'q1-1',ch:1,type:'hunt',title:'森林裡的搶匪',client:'古代樹森林調查員',
     text:'「搔鳥把營地的補給物資叼走了，還在附近大搖大擺！\n　牠不強，但會丟石頭，記得看清楚牠要打哪裡再出手。」',
     mons:['image010'],turns:15,reward:{herb:2,iron:1},exp:10},
-  {id:'q1-2',ch:1,type:'gather',title:'古代樹的恩惠',client:'營地廚師',
-    text:'「藥草和蜂蜜都快見底了，幫我去森林裡採一些回來吧。\n　聽說附近有大兇豺龍在巡邏，採完就快跑！」',
-    mons:['image024'],turns:12,gather:{spots:5,need:4},reward:{herb:3,honey:2,bug:2,web:1,rawmeat:1},exp:10},
   {id:'q1-3',ch:1,type:'hunt',title:'貪吃的大顎',client:'糧食補給班',
     text:'「大兇顎龍把我們曬的肉乾整排吞了！\n　牠吃飽會膨脹回血，別讓牠吃太多。」',
     mons:['image015'],turns:15,reward:{rawmeat:2,iron:1},exp:12},
@@ -55,9 +51,6 @@ export const QUESTS = [
   {id:'q2-2',ch:2,type:'capture',title:'活捉泥魚龍',client:'生態研究班',
     text:'「我們想研究泥魚龍潛泥的原理，需要活體。\n　把牠打到虛弱後用陷阱捕獲，千萬別打死了。」',
     mons:['image020'],turns:18,reward:{web:1,honey:2},exp:22},
-  {id:'q2-3',ch:2,type:'gather',title:'荒地的礦脈',client:'工房老闆',
-    text:'「礦石不夠打造新武器啦！去荒地的礦脈挖一些回來。\n　浮空龍在上面飄來飄去，小心被壓扁。」',
-    mons:['image007'],turns:12,gather:{spots:5,need:4},reward:{iron:3,powder:2,crystal:1},exp:18},
   {id:'q2-4',ch:2,type:'hunt',title:'膨脹的天空',client:'商隊領隊',
     text:'「浮空龍老是飄到商道上空，貨車都被牠壓壞了。\n　牠飛起來近戰打不到，可以準備投擲小刀。」',
     mons:['image007'],turns:15,reward:{rawmeat:2,bug:1},exp:16},
@@ -90,9 +83,6 @@ export const QUESTS = [
   {id:'q3-5',ch:3,type:'seq',title:'櫻與蒼',client:'狩獵愛好者',
     text:'「櫻火龍和蒼火龍，稀有的亞種夫婦！\n　連續兩場硬仗，道具帶夠再出發。」',
     mons:['image004','image002'],turns:32,hpMul:.75,reward:{crystal:2,honey:2},exp:55},
-  {id:'q3-6',ch:3,type:'gather',title:'陸珊瑚的寶藏',client:'工房老闆',
-    text:'「陸珊瑚上長了很稀有的結晶。\n　飛雷龍就在附近，採到 4 個就撤退。」',
-    mons:['image016'],turns:12,gather:{spots:5,need:4},reward:{crystal:2,honey:2,bug:2},exp:30},
   {id:'q3-7',ch:3,type:'hunt',title:'腐臭的屍套',client:'瘴氣之谷調查員',
     text:'「屍套龍披著屍體出現在瘴氣之谷。\n　牠會吸收瘴氣回血，打要打得快。」',
     mons:['image026'],turns:26,reward:{crystal:1,herb:2},exp:55},

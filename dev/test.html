@@ -33,7 +33,7 @@ document.getElementById('f').onload=async()=>{
     /* ---- 單人 ---- */
     start({hunters:[H('gs')],carts:3});
     ok(B.handSize===4&&B.hand.length===4&&B.mon.maxHp===26,'solo: hand 4, tier2 HP 26');
-    ok(d.getElementById('objective-bar').textContent.includes('0/3'),'objective bar shows carts');
+    ok(d.getElementById('cart-display').textContent.includes('0 / 3'),'cart pill shows carts');
 
     /* ---- 武器技能 ---- */
     const setupAdj=(weapon,wlv=1)=>{start({hunters:[H(weapon,{wlv})]});noIntent();const m=B.mon,h=B.hunters[0];m.x=3;m.y=3;const a=w.__mh.hex.getNeighbors(3,3)[0];h.x=a.x;h.y=a.y;h.move=1;return {m,h};};
